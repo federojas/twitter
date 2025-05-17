@@ -1,5 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { FollowAggregate } from '../../../domain/aggregates/follow/follow.aggregate';
+import {
+  ConflictException,
+  ResourceNotFoundException,
+  ValidationException,
+} from '../../../domain/exceptions/domain.exceptions';
 import { FollowRepository } from '../../../domain/repositories/follow-repository.interface';
 import {
   FOLLOW_REPOSITORY,
@@ -20,12 +25,12 @@ export class CreateFollowUseCase {
   async execute(followerId: string, followedId: string): Promise<FollowDto> {
     const followerExists = await this.userRepository.findById(followerId);
     if (!followerExists) {
-      throw new Error('Follower user not found');
+      throw new ResourceNotFoundException('User', followerId);
     }
 
     const followedExists = await this.userRepository.findById(followedId);
     if (!followedExists) {
-      throw new Error('User to follow not found');
+      throw new ResourceNotFoundException('User', followedId);
     }
 
     const alreadyFollowing = await this.followRepository.isFollowing(
@@ -34,28 +39,18 @@ export class CreateFollowUseCase {
     );
 
     if (alreadyFollowing) {
-      throw new Error('Already following this user');
+      throw new ConflictException('Already following this user');
     }
 
-    try {
-      const followAggregate = FollowAggregate.create(followerId, followedId);
-      await this.followRepository.create(followAggregate);
+    const followAggregate = FollowAggregate.create(followerId, followedId);
+    await this.followRepository.create(followAggregate);
 
-      const followDTO = followAggregate.toDTO();
-      return {
-        id: followDTO.id,
-        followerId: followDTO.followerId,
-        followedId: followDTO.followedId,
-        createdAt: followDTO.createdAt,
-      };
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        error.message === 'Users cannot follow themselves'
-      ) {
-        throw new Error('Cannot follow yourself');
-      }
-      throw error;
-    }
+    const followDTO = followAggregate.toDTO();
+    return {
+      id: followDTO.id,
+      followerId: followDTO.followerId,
+      followedId: followDTO.followedId,
+      createdAt: followDTO.createdAt,
+    };
   }
 }

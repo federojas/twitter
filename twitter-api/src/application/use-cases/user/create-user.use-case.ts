@@ -1,8 +1,9 @@
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { UserAggregate } from '../../../domain/aggregates/user/user.aggregate';
 import { UserRepository } from '../../../domain/repositories/user-repository.interface';
 import { USER_REPOSITORY } from '../../../domain/repositories/repository.tokens';
 import { CreateUserDto, UserDto } from '../../dtos/user.dto';
+import { ConflictException } from 'src/domain/exceptions/domain.exceptions';
 
 @Injectable()
 export class CreateUserUseCase {
@@ -18,7 +19,7 @@ export class CreateUserUseCase {
 
     if (usernameExists) {
       throw new ConflictException(
-        `Username '${createUserDto.username}' already exists`,
+        `User with username ${createUserDto.username} already exists`,
       );
     }
 

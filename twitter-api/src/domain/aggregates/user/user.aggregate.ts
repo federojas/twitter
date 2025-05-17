@@ -1,4 +1,8 @@
 import { randomUUID } from 'crypto';
+import {
+  NotEmptyException,
+  ValidationException,
+} from 'src/domain/exceptions/domain.exceptions';
 
 /**
  * User Aggregate Root
@@ -9,6 +13,11 @@ export class UserAggregate {
   private readonly username: string;
   private readonly displayName: string;
   private readonly createdAt: Date;
+
+  static MIN_USERNAME_LENGTH = 3;
+  static MAX_USERNAME_LENGTH = 20;
+  static MIN_DISPLAY_NAME_LENGTH = 3;
+  static MAX_DISPLAY_NAME_LENGTH = 50;
 
   private constructor(
     id: string,
@@ -22,6 +31,48 @@ export class UserAggregate {
     this.createdAt = createdAt;
   }
 
+  private static validateUsername(username: string): void {
+    if (!username) {
+      throw new NotEmptyException('User username');
+    }
+
+    if (username.length < UserAggregate.MIN_USERNAME_LENGTH) {
+      throw new ValidationException(
+        `User username must be at least ${UserAggregate.MIN_USERNAME_LENGTH} characters long`,
+      );
+    }
+
+    if (username.length > UserAggregate.MAX_USERNAME_LENGTH) {
+      throw new ValidationException(
+        `User username cannot exceed ${UserAggregate.MAX_USERNAME_LENGTH} characters`,
+      );
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      throw new ValidationException(
+        'User username can only contain letters, numbers, and underscores',
+      );
+    }
+  }
+
+  private static validateDisplayName(displayName: string): void {
+    if (!displayName) {
+      throw new NotEmptyException('User display name');
+    }
+
+    if (displayName.length < UserAggregate.MIN_DISPLAY_NAME_LENGTH) {
+      throw new ValidationException(
+        `User display name must be at least ${UserAggregate.MIN_DISPLAY_NAME_LENGTH} characters long`,
+      );
+    }
+
+    if (displayName.length > UserAggregate.MAX_DISPLAY_NAME_LENGTH) {
+      throw new ValidationException(
+        `User display name cannot exceed ${UserAggregate.MAX_DISPLAY_NAME_LENGTH} characters`,
+      );
+    }
+  }
+
   /**
    * Factory method para crear un nuevo usuario
    */
@@ -30,35 +81,8 @@ export class UserAggregate {
     displayName: string,
     id?: string,
   ): UserAggregate {
-    if (!username) {
-      throw new Error('Username cannot be empty');
-    }
-
-    if (username.length < 3) {
-      throw new Error('Username must be at least 3 characters long');
-    }
-
-    if (username.length > 20) {
-      throw new Error('Username cannot exceed 20 characters');
-    }
-
-    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-      throw new Error(
-        'Username can only contain letters, numbers, and underscores',
-      );
-    }
-
-    if (!displayName) {
-      throw new Error('Display name cannot be empty');
-    }
-
-    if (displayName.length < 3) {
-      throw new Error('Display name must be at least 3 characters long');
-    }
-
-    if (displayName.length > 50) {
-      throw new Error('Display name cannot exceed 50 characters');
-    }
+    this.validateUsername(username);
+    this.validateDisplayName(displayName);
 
     return new UserAggregate(
       id || randomUUID(),

@@ -1,7 +1,8 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { UserRepository } from '../../../domain/repositories/user-repository.interface';
 import { USER_REPOSITORY } from '../../../domain/repositories/repository.tokens';
 import { UserDto } from '../../dtos/user.dto';
+import { ResourceNotFoundException } from 'src/domain/exceptions/domain.exceptions';
 
 @Injectable()
 export class GetUserByIdUseCase {
@@ -13,7 +14,7 @@ export class GetUserByIdUseCase {
   async execute(id: string): Promise<UserDto> {
     const userAggregate = await this.userRepository.findById(id);
     if (!userAggregate) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new ResourceNotFoundException('User', id);
     }
 
     return userAggregate.toDTO();

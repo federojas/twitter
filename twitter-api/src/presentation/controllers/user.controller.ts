@@ -6,16 +6,19 @@ import {
   HttpStatus,
   Param,
   Post,
+  UseFilters,
 } from '@nestjs/common';
 import { CreateUserDto, UserDto } from '../../application/dtos/user.dto';
 import { CreateUserUseCase } from '../../application/use-cases/user/create-user.use-case';
 import { GetUserByIdUseCase } from '../../application/use-cases/user/get-users.use-case';
+import { DomainExceptionFilter } from '../filters/domain-exception.filter';
 
 /**
  * User Controller
  * Mapea API inputs a application use cases y use case outputs a API responses
  */
 @Controller('users')
+@UseFilters(DomainExceptionFilter)
 export class UserController {
   constructor(
     private readonly createUserUseCase: CreateUserUseCase,

@@ -1,4 +1,8 @@
 import { randomUUID } from 'crypto';
+import {
+  NotEmptyException,
+  ValidationException,
+} from 'src/domain/exceptions/domain.exceptions';
 
 /**
  * Tweet Aggregate Root
@@ -9,6 +13,8 @@ export class TweetAggregate {
   private readonly content: string;
   private readonly userId: string;
   private readonly createdAt: Date;
+
+  static MAX_TWEET_LENGTH = 280;
 
   private constructor(
     id: string,
@@ -24,11 +30,13 @@ export class TweetAggregate {
 
   static create(content: string, userId: string): TweetAggregate {
     if (!content || content.trim().length === 0) {
-      throw new Error('Tweet content cannot be empty');
+      throw new NotEmptyException('Tweet content');
     }
 
-    if (content.length > 280) {
-      throw new Error('Tweet content cannot exceed 280 characters');
+    if (content.length > TweetAggregate.MAX_TWEET_LENGTH) {
+      throw new ValidationException(
+        `Tweet content cannot exceed ${TweetAggregate.MAX_TWEET_LENGTH} characters`,
+      );
     }
 
     return new TweetAggregate(randomUUID(), content, userId, new Date());

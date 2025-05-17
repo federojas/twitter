@@ -5,6 +5,7 @@ import {
   MinLength,
   Matches,
 } from 'class-validator';
+import { UserAggregate } from '../../domain/aggregates/user/user.aggregate';
 
 /**
  * Data Transfer Object para crear un usuario
@@ -12,8 +13,12 @@ import {
 export class CreateUserDto {
   @IsString({ message: 'Username must be a string' })
   @IsNotEmpty({ message: 'Username cannot be empty' })
-  @MinLength(3, { message: 'Username min length is 3 chars' })
-  @MaxLength(20, { message: 'Username max length is 20 chars' })
+  @MinLength(UserAggregate.MIN_USERNAME_LENGTH, {
+    message: `Username min length is ${UserAggregate.MIN_USERNAME_LENGTH} chars`,
+  })
+  @MaxLength(UserAggregate.MAX_USERNAME_LENGTH, {
+    message: `Username max length is ${UserAggregate.MAX_USERNAME_LENGTH} chars`,
+  })
   @Matches(/^[a-zA-Z0-9_]+$/, {
     message: 'Username can only contain letters, numbers, and underscores',
   })
@@ -21,7 +26,12 @@ export class CreateUserDto {
 
   @IsString({ message: 'Display name must be a string' })
   @IsNotEmpty({ message: 'Display name cannot be empty' })
-  @MaxLength(50, { message: 'Display name max length is 50 chars' })
+  @MinLength(UserAggregate.MIN_DISPLAY_NAME_LENGTH, {
+    message: `Display name min length is ${UserAggregate.MIN_DISPLAY_NAME_LENGTH} chars`,
+  })
+  @MaxLength(UserAggregate.MAX_DISPLAY_NAME_LENGTH, {
+    message: `Display name max length is ${UserAggregate.MAX_DISPLAY_NAME_LENGTH} chars`,
+  })
   displayName: string;
 }
 

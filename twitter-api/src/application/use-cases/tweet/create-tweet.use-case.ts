@@ -5,6 +5,7 @@ import { TWEET_REPOSITORY } from '../../../domain/repositories/repository.tokens
 import { CreateTweetDto, TweetDto } from '../../dtos/tweet.dto';
 import { UserRepository } from '../../../domain/repositories/user-repository.interface';
 import { USER_REPOSITORY } from '../../../domain/repositories/repository.tokens';
+import { ResourceNotFoundException } from 'src/domain/exceptions/domain.exceptions';
 
 @Injectable()
 export class CreateTweetUseCase {
@@ -21,7 +22,7 @@ export class CreateTweetUseCase {
   ): Promise<TweetDto> {
     const userExists = await this.userRepository.findById(userId);
     if (!userExists) {
-      throw new Error('User not found');
+      throw new ResourceNotFoundException('User', userId);
     }
 
     const tweetAggregate = TweetAggregate.create(

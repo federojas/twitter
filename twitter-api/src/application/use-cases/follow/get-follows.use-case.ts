@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ResourceNotFoundException } from '../../../domain/exceptions/domain.exceptions';
 import { FollowRepository } from '../../../domain/repositories/follow-repository.interface';
 import {
   FOLLOW_REPOSITORY,
@@ -19,7 +20,7 @@ export class GetFollowersUseCase {
   async execute(userId: string): Promise<FollowUserDto[]> {
     const userExists = await this.userRepository.findById(userId);
     if (!userExists) {
-      throw new Error('User not found');
+      throw new ResourceNotFoundException('User', userId);
     }
 
     const follows = await this.followRepository.findFollowers(userId);
@@ -61,7 +62,7 @@ export class GetFollowingUseCase {
   async execute(userId: string): Promise<FollowUserDto[]> {
     const userExists = await this.userRepository.findById(userId);
     if (!userExists) {
-      throw new Error('User not found');
+      throw new ResourceNotFoundException('User', userId);
     }
 
     const follows = await this.followRepository.findFollowing(userId);

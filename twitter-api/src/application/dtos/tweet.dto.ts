@@ -1,4 +1,5 @@
 import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
+import { TweetAggregate } from '../../domain/aggregates/tweet/tweet.aggregate';
 
 /**
  * Data Transfer Object para crear un tweet
@@ -6,7 +7,9 @@ import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 export class CreateTweetDto {
   @IsString({ message: 'Tweet content must be a string' })
   @IsNotEmpty({ message: 'Tweet content cannot be empty' })
-  @MaxLength(280, { message: 'Tweet content cannot exceed 280 characters' })
+  @MaxLength(TweetAggregate.MAX_TWEET_LENGTH, {
+    message: `Tweet content cannot exceed ${TweetAggregate.MAX_TWEET_LENGTH} characters`,
+  })
   content: string;
 }
 

@@ -1,13 +1,12 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
   Headers,
   HttpCode,
   HttpStatus,
-  NotFoundException,
   Post,
+  UseFilters,
 } from '@nestjs/common';
 import {
   CreateFollowDto,
@@ -19,8 +18,11 @@ import {
   GetFollowersUseCase,
   GetFollowingUseCase,
 } from '../../application/use-cases/follow/get-follows.use-case';
+import { DomainExceptionFilter } from '../filters/domain-exception.filter';
+import { MissingAuthorizationHeaderException } from 'src/domain/exceptions/domain.exceptions';
 
 @Controller('follows')
+@UseFilters(DomainExceptionFilter)
 export class FollowController {
   constructor(
     private readonly createFollowUseCase: CreateFollowUseCase,
@@ -34,71 +36,35 @@ export class FollowController {
     @Headers('authorization') authorization: string,
     @Body() createFollowDto: CreateFollowDto,
   ): Promise<FollowDto> {
-    try {
-      if (!authorization) {
-        throw new BadRequestException('Missing Authorization header');
-      }
-
-      const followerId = authorization;
-      return await this.createFollowUseCase.execute(
-        followerId,
-        createFollowDto.userId,
-      );
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        if (error.message === 'Follower user not found') {
-          throw new NotFoundException('Current user not found');
-        } else if (error.message === 'User to follow not found') {
-          throw new NotFoundException(
-            `User with ID ${createFollowDto.userId} not found`,
-          );
-        } else if (error.message === 'Already following this user') {
-          throw new BadRequestException(
-            `Already following user with ID ${createFollowDto.userId}`,
-          );
-        } else if (error.message === 'Cannot follow yourself') {
-          throw new BadRequestException('Cannot follow yourself');
-        }
-      }
-      throw error;
+    if (!authorization) {
+      throw new MissingAuthorizationHeaderException();
     }
+
+    const followerId = authorization;
+    return this.createFollowUseCase.execute(followerId, createFollowDto.userId);
   }
 
   @Get('followers')
   async getFollowers(
     @Headers('authorization') authorization: string,
   ): Promise<FollowUserDto[]> {
-    try {
-      if (!authorization) {
-        throw new BadRequestException('Missing Authorization header');
-      }
-
-      const userId = authorization;
-      return await this.getFollowersUseCase.execute(userId);
-    } catch (error: unknown) {
-      if (error instanceof Error && error.message === 'User not found') {
-        throw new NotFoundException('User not found');
-      }
-      throw error;
+    if (!authorization) {
+      throw new MissingAuthorizationHeaderException();
     }
+
+    const userId = authorization;
+    return this.getFollowersUseCase.execute(userId);
   }
 
   @Get('following')
   async getFollowing(
     @Headers('authorization') authorization: string,
   ): Promise<FollowUserDto[]> {
-    try {
-      if (!authorization) {
-        throw new BadRequestException('Missing Authorization header');
-      }
-
-      const userId = authorization;
-      return await this.getFollowingUseCase.execute(userId);
-    } catch (error: unknown) {
-      if (error instanceof Error && error.message === 'User not found') {
-        throw new NotFoundException('User not found');
-      }
-      throw error;
+    if (!authorization) {
+      throw new MissingAuthorizationHeaderException();
     }
+
+    const userId = authorization;
+    return this.getFollowingUseCase.execute(userId);
   }
 }

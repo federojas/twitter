@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import { ValidationException } from '../../exceptions/domain.exceptions';
 
 /**
  * Follow Aggregate Root
@@ -24,7 +25,7 @@ export class FollowAggregate {
 
   static create(followerId: string, followedId: string): FollowAggregate {
     if (followerId === followedId) {
-      throw new Error('Users cannot follow themselves');
+      throw new ValidationException('Users cannot follow themselves');
     }
 
     return new FollowAggregate(
