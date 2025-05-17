@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { FollowAggregate } from '../../../../domain/aggregates/follow/follow.aggregate';
-import { FollowRepository } from '../../../../domain/repositories/follow-repository.interface';
+import { FollowRepository } from '../../../../domain/repository-interfaces/follow-repository.interface';
 
 @Injectable()
 export class FollowRepositoryImpl implements FollowRepository {

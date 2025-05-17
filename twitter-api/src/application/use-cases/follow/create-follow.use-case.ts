@@ -4,12 +4,12 @@ import {
   ConflictException,
   ResourceNotFoundException,
 } from '../../../domain/exceptions/domain.exceptions';
-import { FollowRepository } from '../../../domain/repositories/follow-repository.interface';
+import { FollowRepository } from '../../../domain/repository-interfaces/follow-repository.interface';
 import {
   FOLLOW_REPOSITORY,
   USER_REPOSITORY,
-} from '../../../domain/repositories/repository.tokens';
-import { UserRepository } from '../../../domain/repositories/user-repository.interface';
+} from '../../../domain/repository-interfaces/repository.tokens';
+import { UserRepository } from '../../../domain/repository-interfaces/user-repository.interface';
 import { FollowDto } from '../../dtos/follow.dto';
 import { LinkGenerator } from 'src/application/utils/link-generator';
 

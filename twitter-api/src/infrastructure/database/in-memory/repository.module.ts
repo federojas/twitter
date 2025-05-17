@@ -3,7 +3,7 @@ import {
   FOLLOW_REPOSITORY,
   TWEET_REPOSITORY,
   USER_REPOSITORY,
-} from '../../../domain/repositories/repository.tokens';
+} from '../../../domain/repository-interfaces/repository.tokens';
 import { UserRepositoryImpl } from './repositories/user.repository';
 import { TweetRepositoryImpl } from './repositories/tweet.repository';
 import { FollowRepositoryImpl } from './repositories/follow.repository';

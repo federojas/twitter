@@ -1,13 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UserNotFoundException } from '../../../domain/exceptions/domain.exceptions';
-import { FollowRepository } from '../../../domain/repositories/follow-repository.interface';
-import { TweetRepository } from '../../../domain/repositories/tweet-repository.interface';
-import { UserRepository } from '../../../domain/repositories/user-repository.interface';
+import { FollowRepository } from '../../../domain/repository-interfaces/follow-repository.interface';
+import { TweetRepository } from '../../../domain/repository-interfaces/tweet-repository.interface';
+import { UserRepository } from '../../../domain/repository-interfaces/user-repository.interface';
 import {
   FOLLOW_REPOSITORY,
   TWEET_REPOSITORY,
   USER_REPOSITORY,
-} from '../../../domain/repositories/repository.tokens';
+} from '../../../domain/repository-interfaces/repository.tokens';
 import { TweetDto } from '../../dtos/tweet.dto';
 import { TweetAggregate } from '../../../domain/aggregates/tweet/tweet.aggregate';
 import { LinkGenerator } from '../../utils/link-generator';
