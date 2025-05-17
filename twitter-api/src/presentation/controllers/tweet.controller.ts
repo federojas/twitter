@@ -15,7 +15,10 @@ import { CreateTweetUseCase } from '../../application/use-cases/tweet/create-twe
 import { GetTweetByIdUseCase } from '../../application/use-cases/tweet/get-tweets.use-case';
 import { GetTimelineUseCase } from '../../application/use-cases/tweet/get-timeline.use-case';
 import { DomainExceptionFilter } from '../filters/domain-exception.filter';
-import { MissingAuthorizationHeaderException } from 'src/domain/exceptions/domain.exceptions';
+import {
+  MissingAuthorizationHeaderException,
+  UnimplementedException,
+} from 'src/domain/exceptions/domain.exceptions';
 import {
   PaginatedResult,
   PaginationParams,
@@ -34,6 +37,8 @@ export class TweetController {
     private readonly getTimelineUseCase: GetTimelineUseCase,
   ) {}
 
+  static readonly TYPE_TIMELINE = 'timeline';
+
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async createTweet(
@@ -48,9 +53,10 @@ export class TweetController {
     return await this.createTweetUseCase.execute(userId, createTweetDto);
   }
 
-  @Get('timeline')
+  @Get()
   async getTimeline(
     @Headers('authorization') authorization: string,
+    @Query('type') type?: string,
     @Query('page') page?: number,
     @Query('pageSize') pageSize?: number,
   ): Promise<PaginatedResult<TweetDto>> {
@@ -63,7 +69,13 @@ export class TweetController {
       pageSize ? Number(pageSize) : undefined,
     );
 
-    return this.getTimelineUseCase.execute(authorization, pagination);
+    if (type === TweetController.TYPE_TIMELINE) {
+      return this.getTimelineUseCase.execute(authorization, pagination);
+    } else {
+      throw new UnimplementedException(
+        'Querying over all tweets is not implemented. Use type=timeline query parameter to go over the tweets timeline.',
+      );
+    }
   }
 
   @Get(':id')

@@ -17,6 +17,7 @@ import {
   GetFollowingUseCase,
 } from '../../application/use-cases/follow/get-user-follows.use-case';
 import { DomainExceptionFilter } from '../filters/domain-exception.filter';
+import { UnimplementedException } from 'src/domain/exceptions/domain.exceptions';
 
 /**
  * User Controller
@@ -36,6 +37,15 @@ export class UserController {
   @HttpCode(HttpStatus.CREATED)
   async createUser(@Body() createUserDto: CreateUserDto): Promise<UserDto> {
     return this.createUserUseCase.execute(createUserDto);
+  }
+
+  @Get()
+  async getUsers(): Promise<null> {
+    throw new UnimplementedException(
+      'Querying over all users is not implemented.',
+    );
+
+    return Promise.resolve(null);
   }
 
   @Get(':id')

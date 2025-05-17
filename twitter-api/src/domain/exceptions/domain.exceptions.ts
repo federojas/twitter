@@ -137,4 +137,15 @@ export class ServerException extends DomainException {
   }
 }
 
+// 501
+
+/**
+ * Metodo no implementado (podria ser implementado en el futuro pero no es requerido para el MVP)
+ */
+export class UnimplementedException extends DomainException {
+  constructor(message?: string) {
+    super(message || 'Method not implemented.');
+  }
+}
+
 ////////////////////////////////////////////////////////////

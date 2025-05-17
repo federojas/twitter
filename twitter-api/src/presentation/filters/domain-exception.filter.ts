@@ -11,6 +11,7 @@ import {
   ForbiddenException,
   ResourceNotFoundException,
   UnauthorizedException,
+  UnimplementedException,
   ValidationException,
 } from '../../domain/exceptions/domain.exceptions';
 import { ErrorResponse } from '../response/error-response';
@@ -33,6 +34,8 @@ export class DomainExceptionFilter implements ExceptionFilter {
       status = HttpStatus.UNAUTHORIZED;
     } else if (exception instanceof ForbiddenException) {
       status = HttpStatus.FORBIDDEN;
+    } else if (exception instanceof UnimplementedException) {
+      status = HttpStatus.NOT_IMPLEMENTED;
     }
 
     const errorResponse = ErrorResponse.fromMessage(

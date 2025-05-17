@@ -12,7 +12,10 @@ import {
 import { CreateFollowDto, FollowDto } from '../../application/dtos/follow.dto';
 import { CreateFollowUseCase } from '../../application/use-cases/follow/create-follow.use-case';
 import { DomainExceptionFilter } from '../filters/domain-exception.filter';
-import { MissingAuthorizationHeaderException } from '../../domain/exceptions/domain.exceptions';
+import {
+  MissingAuthorizationHeaderException,
+  UnimplementedException,
+} from '../../domain/exceptions/domain.exceptions';
 import { GetFollowByIdUseCase } from '../../application/use-cases/follow/get-follows.use-case';
 
 @Controller('follows')
@@ -40,5 +43,14 @@ export class FollowController {
   @Get(':id')
   async getFollowById(@Param('id') id: string): Promise<FollowDto> {
     return this.getFollowByIdUseCase.execute(id);
+  }
+
+  @Get()
+  async getFollows(): Promise<null> {
+    throw new UnimplementedException(
+      'Querying over all follow relationships is not implemented.',
+    );
+
+    return Promise.resolve(null);
   }
 }
