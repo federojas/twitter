@@ -1,57 +1,40 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { UserNotFoundException } from '../../../domain/exceptions/domain.exceptions';
-import { FollowRepository } from '../../../domain/interfaces/repository/follow-repository.interface';
-import { TweetRepository } from '../../../domain/interfaces/repository/tweet-repository.interface';
-import { UserRepository } from '../../../domain/interfaces/repository/user-repository.interface';
-import {
-  FOLLOW_REPOSITORY,
-  TWEET_REPOSITORY,
-  USER_REPOSITORY,
-} from '../../../domain/interfaces/repository/repository.tokens';
 import { TweetDto } from '../../dtos/tweet.dto';
-import { TweetAggregate } from '../../../domain/aggregates/tweet/tweet.aggregate';
 import { LinkGenerator } from '../../utils/link-generator';
 import { PaginatedResult, PaginationParams } from '../../dtos/pagination.dto';
+import { UserService } from 'src/domain/interfaces/service/user-service.interface';
+import { TweetService } from 'src/domain/interfaces/service/tweet-service.interface';
+import { FollowService } from 'src/domain/interfaces/service/follow-service.interface';
+import {
+  USER_SERVICE,
+  TWEET_SERVICE,
+  FOLLOW_SERVICE,
+} from 'src/domain/interfaces/service/service.tokens';
 
 @Injectable()
 export class GetTimelineUseCase {
   constructor(
-    @Inject(USER_REPOSITORY)
-    private readonly userRepository: UserRepository,
-    @Inject(TWEET_REPOSITORY)
-    private readonly tweetRepository: TweetRepository,
-    @Inject(FOLLOW_REPOSITORY)
-    private readonly followRepository: FollowRepository,
+    @Inject(USER_SERVICE)
+    private readonly userService: UserService,
+    @Inject(TWEET_SERVICE)
+    private readonly tweetService: TweetService,
+    @Inject(FOLLOW_SERVICE)
+    private readonly followService: FollowService,
   ) {}
 
   async execute(
     userId: string,
     pagination: PaginationParams = new PaginationParams(),
   ): Promise<PaginatedResult<TweetDto>> {
-    const userExists = await this.userRepository.findById(userId);
-    if (!userExists) {
-      throw new UserNotFoundException(userId);
-    }
+    await this.userService.getUserById(userId);
 
-    const follows = await this.followRepository.findFollowing(userId);
-    const timelineTweetUserIds = follows.map((follow) =>
-      follow.getFollowedId(),
+    const follows = await this.followService.getUserFollowing(userId);
+    const followedUserIds = follows.map((follow) => follow.getFollowedId());
+
+    const allTweets = await this.tweetService.getTimelineTweets(
+      userId,
+      followedUserIds,
     );
-
-    timelineTweetUserIds.push(userId); // Incluir los tweets propios
-
-    const allTweets: TweetAggregate[] = [];
-
-    for (const id of timelineTweetUserIds) {
-      const userTweets = await this.tweetRepository.findByUserId(id);
-      allTweets.push(...userTweets);
-    }
-
-    allTweets.sort((a, b) => {
-      const dateA = a.getCreatedAt().getTime();
-      const dateB = b.getCreatedAt().getTime();
-      return dateB - dateA;
-    });
 
     const allTweetDtos = allTweets.map((tweet) => tweet.toDTO() as TweetDto);
     const enhancedTweets = LinkGenerator.enhanceTweetsWithLinks(allTweetDtos);

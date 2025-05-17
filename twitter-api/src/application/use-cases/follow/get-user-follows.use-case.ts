@@ -1,39 +1,35 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { FollowRepository } from '../../../domain/interfaces/repository/follow-repository.interface';
-import {
-  FOLLOW_REPOSITORY,
-  USER_REPOSITORY,
-} from '../../../domain/interfaces/repository/repository.tokens';
-import { UserRepository } from '../../../domain/interfaces/repository/user-repository.interface';
 import { FollowUserDto } from '../../dtos/follow.dto';
-import { UserNotFoundException } from 'src/domain/exceptions/domain.exceptions';
 import { LinkGenerator } from '../../utils/link-generator';
+import { FollowService } from 'src/domain/interfaces/service/follow-service.interface';
+import { UserService } from 'src/domain/interfaces/service/user-service.interface';
+import {
+  FOLLOW_SERVICE,
+  USER_SERVICE,
+} from 'src/domain/interfaces/service/service.tokens';
 
 @Injectable()
 export class GetFollowersUseCase {
   constructor(
-    @Inject(FOLLOW_REPOSITORY)
-    private readonly followRepository: FollowRepository,
-    @Inject(USER_REPOSITORY)
-    private readonly userRepository: UserRepository,
+    @Inject(FOLLOW_SERVICE)
+    private readonly followService: FollowService,
+    @Inject(USER_SERVICE)
+    private readonly userService: UserService,
   ) {}
 
   async execute(userId: string): Promise<FollowUserDto[]> {
-    const userExists = await this.userRepository.findById(userId);
-    if (!userExists) {
-      throw new UserNotFoundException(userId);
-    }
+    await this.userService.getUserById(userId);
 
-    const follows = await this.followRepository.findFollowers(userId);
+    const follows = await this.followService.getUserFollowers(userId);
 
     const followerDtos: FollowUserDto[] = [];
 
     for (const follow of follows) {
       const followerId = follow.getFollowerId();
-      const follower = await this.userRepository.findById(followerId);
+      const follower = await this.userService.getUserById(followerId);
 
       if (follower) {
-        const isFollowing = await this.followRepository.isFollowing(
+        const isFollowing = await this.followService.isFollowing(
           userId,
           followerId,
         );
@@ -57,25 +53,22 @@ export class GetFollowersUseCase {
 @Injectable()
 export class GetFollowingUseCase {
   constructor(
-    @Inject(FOLLOW_REPOSITORY)
-    private readonly followRepository: FollowRepository,
-    @Inject(USER_REPOSITORY)
-    private readonly userRepository: UserRepository,
+    @Inject(FOLLOW_SERVICE)
+    private readonly followService: FollowService,
+    @Inject(USER_SERVICE)
+    private readonly userService: UserService,
   ) {}
 
   async execute(userId: string): Promise<FollowUserDto[]> {
-    const userExists = await this.userRepository.findById(userId);
-    if (!userExists) {
-      throw new UserNotFoundException(userId);
-    }
+    await this.userService.getUserById(userId);
 
-    const follows = await this.followRepository.findFollowing(userId);
+    const follows = await this.followService.getUserFollowing(userId);
 
     const followingDtos: FollowUserDto[] = [];
 
     for (const follow of follows) {
       const followedId = follow.getFollowedId();
-      const followed = await this.userRepository.findById(followedId);
+      const followed = await this.userService.getUserById(followedId);
 
       if (followed) {
         const followUserDto: FollowUserDto = {

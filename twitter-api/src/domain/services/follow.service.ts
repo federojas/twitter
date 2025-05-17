@@ -7,6 +7,7 @@ import {
   ResourceNotFoundException,
   ConflictException,
   ValidationException,
+  FollowNotFoundException,
 } from '../exceptions/domain.exceptions';
 
 @Injectable()
@@ -43,7 +44,7 @@ export class FollowServiceImpl implements FollowService {
     const follow = await this.followRepository.findById(followId);
 
     if (!follow) {
-      throw new ResourceNotFoundException('Follow', followId);
+      throw new FollowNotFoundException(followId);
     }
 
     return follow;

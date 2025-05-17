@@ -3,7 +3,7 @@ import { TweetAggregate } from '../aggregates/tweet/tweet.aggregate';
 import { TweetService } from '../interfaces/service/tweet-service.interface';
 import { TweetRepository } from '../interfaces/repository/tweet-repository.interface';
 import { TWEET_REPOSITORY } from '../interfaces/repository/repository.tokens';
-import { ResourceNotFoundException } from '../exceptions/domain.exceptions';
+import { TweetNotFoundException } from '../exceptions/domain.exceptions';
 
 @Injectable()
 export class TweetServiceImpl implements TweetService {
@@ -21,7 +21,7 @@ export class TweetServiceImpl implements TweetService {
     const tweet = await this.tweetRepository.findById(tweetId);
 
     if (!tweet) {
-      throw new ResourceNotFoundException('Tweet', tweetId);
+      throw new TweetNotFoundException(tweetId);
     }
 
     return tweet;

@@ -1,25 +1,24 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UserAggregate } from '../../../domain/aggregates/user/user.aggregate';
-import { UserRepository } from '../../../domain/interfaces/repository/user-repository.interface';
-import { USER_REPOSITORY } from '../../../domain/interfaces/repository/repository.tokens';
 import { CreateUserDto, UserDto } from '../../dtos/user.dto';
-import { ConflictException } from 'src/domain/exceptions/domain.exceptions';
 import { LinkGenerator } from 'src/application/utils/link-generator';
+import { UserService } from 'src/domain/interfaces/service/user-service.interface';
+import { USER_SERVICE } from 'src/domain/interfaces/service/service.tokens';
 
 @Injectable()
 export class CreateUserUseCase {
   constructor(
-    @Inject(USER_REPOSITORY)
-    private readonly userRepository: UserRepository,
+    @Inject(USER_SERVICE)
+    private readonly userService: UserService,
   ) {}
 
   async execute(createUserDto: CreateUserDto): Promise<UserDto> {
-    const usernameExists = await this.userRepository.existsByUsername(
+    const isUsernameAvailable = await this.userService.isUsernameAvailable(
       createUserDto.username,
     );
 
-    if (usernameExists) {
-      throw new ConflictException(
+    if (!isUsernameAvailable) {
+      throw new Error(
         `User with username ${createUserDto.username} already exists`,
       );
     }
@@ -29,7 +28,7 @@ export class CreateUserUseCase {
       createUserDto.displayName,
     );
 
-    await this.userRepository.create(userAggregate);
+    await this.userService.createUser(userAggregate);
 
     return LinkGenerator.enhanceUserWithLinks(userAggregate.toDTO() as UserDto);
   }

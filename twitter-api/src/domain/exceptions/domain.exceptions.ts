@@ -93,6 +93,24 @@ export class UserNotFoundException extends ResourceNotFoundException {
   }
 }
 
+/**
+ * Usuario no encontrado (no existe)
+ */
+export class TweetNotFoundException extends ResourceNotFoundException {
+  constructor(id?: string) {
+    super('Tweet', id);
+  }
+}
+
+/**
+ * Usuario no encontrado (no existe)
+ */
+export class FollowNotFoundException extends ResourceNotFoundException {
+  constructor(id?: string) {
+    super('Follow', id);
+  }
+}
+
 ////////////////////////////////////////////////////////////
 
 // 409

@@ -1,49 +1,30 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { FollowAggregate } from '../../../domain/aggregates/follow/follow.aggregate';
-import {
-  ConflictException,
-  ResourceNotFoundException,
-} from '../../../domain/exceptions/domain.exceptions';
-import { FollowRepository } from '../../../domain/interfaces/repository/follow-repository.interface';
-import {
-  FOLLOW_REPOSITORY,
-  USER_REPOSITORY,
-} from '../../../domain/interfaces/repository/repository.tokens';
-import { UserRepository } from '../../../domain/interfaces/repository/user-repository.interface';
 import { FollowDto } from '../../dtos/follow.dto';
 import { LinkGenerator } from 'src/application/utils/link-generator';
+import { FollowService } from 'src/domain/interfaces/service/follow-service.interface';
+import { UserService } from 'src/domain/interfaces/service/user-service.interface';
+import {
+  FOLLOW_SERVICE,
+  USER_SERVICE,
+} from 'src/domain/interfaces/service/service.tokens';
 
 @Injectable()
 export class CreateFollowUseCase {
   constructor(
-    @Inject(FOLLOW_REPOSITORY)
-    private readonly followRepository: FollowRepository,
-    @Inject(USER_REPOSITORY)
-    private readonly userRepository: UserRepository,
+    @Inject(FOLLOW_SERVICE)
+    private readonly followService: FollowService,
+    @Inject(USER_SERVICE)
+    private readonly userService: UserService,
   ) {}
 
   async execute(followerId: string, followedId: string): Promise<FollowDto> {
-    const followerExists = await this.userRepository.findById(followerId);
-    if (!followerExists) {
-      throw new ResourceNotFoundException('User', followerId);
-    }
+    await this.userService.getUserById(followerId);
+    await this.userService.getUserById(followedId);
 
-    const followedExists = await this.userRepository.findById(followedId);
-    if (!followedExists) {
-      throw new ResourceNotFoundException('User', followedId);
-    }
-
-    const alreadyFollowing = await this.followRepository.isFollowing(
+    const followAggregate = await this.followService.createFollow(
       followerId,
       followedId,
     );
-
-    if (alreadyFollowing) {
-      throw new ConflictException('Already following this user');
-    }
-
-    const followAggregate = FollowAggregate.create(followerId, followedId);
-    await this.followRepository.create(followAggregate);
 
     const followDTO = followAggregate.toDTO() as FollowDto;
     return LinkGenerator.enhanceFollowWithLinks(followDTO);

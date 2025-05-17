@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { DomainModule } from '../../domain/domain.module';
-import { InfrastructureModule } from '../../infrastructure/infrastructure.module';
 import { CreateFollowUseCase } from './follow/create-follow.use-case';
 import {
   GetFollowersUseCase,
@@ -9,7 +8,7 @@ import {
 import { GetFollowByIdUseCase } from './follow/get-follows.use-case';
 
 @Module({
-  imports: [DomainModule, InfrastructureModule],
+  imports: [DomainModule],
   providers: [
     CreateFollowUseCase,
     GetFollowersUseCase,

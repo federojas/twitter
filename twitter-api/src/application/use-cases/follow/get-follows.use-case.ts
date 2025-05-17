@@ -1,21 +1,22 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { LinkGenerator } from '../../utils/link-generator';
-import { FollowRepository } from '../../../domain/interfaces/repository/follow-repository.interface';
-import { FOLLOW_REPOSITORY } from '../../../domain/interfaces/repository/repository.tokens';
 import { FollowDto } from '../../dtos/follow.dto';
-import { ResourceNotFoundException } from '../../../domain/exceptions/domain.exceptions';
+import { FollowService } from 'src/domain/interfaces/service/follow-service.interface';
+import { FOLLOW_SERVICE } from 'src/domain/interfaces/service/service.tokens';
+import { FollowNotFoundException } from '../../../domain/exceptions/domain.exceptions';
 
 @Injectable()
 export class GetFollowByIdUseCase {
   constructor(
-    @Inject(FOLLOW_REPOSITORY)
-    private readonly followRepository: FollowRepository,
+    @Inject(FOLLOW_SERVICE)
+    private readonly followService: FollowService,
   ) {}
 
   async execute(id: string): Promise<FollowDto> {
-    const follow = await this.followRepository.findById(id);
+    const follow = await this.followService.getFollowById(id);
+
     if (!follow) {
-      throw new ResourceNotFoundException('Follow', id);
+      throw new FollowNotFoundException(id);
     }
 
     const followDto = follow.toDTO() as FollowDto;

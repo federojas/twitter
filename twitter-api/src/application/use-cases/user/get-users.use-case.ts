@@ -1,21 +1,22 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { UserRepository } from '../../../domain/interfaces/repository/user-repository.interface';
-import { USER_REPOSITORY } from '../../../domain/interfaces/repository/repository.tokens';
 import { UserDto } from '../../dtos/user.dto';
-import { ResourceNotFoundException } from 'src/domain/exceptions/domain.exceptions';
 import { LinkGenerator } from 'src/application/utils/link-generator';
+import { UserService } from 'src/domain/interfaces/service/user-service.interface';
+import { USER_SERVICE } from 'src/domain/interfaces/service/service.tokens';
+import { UserNotFoundException } from 'src/domain/exceptions/domain.exceptions';
 
 @Injectable()
 export class GetUserByIdUseCase {
   constructor(
-    @Inject(USER_REPOSITORY)
-    private readonly userRepository: UserRepository,
+    @Inject(USER_SERVICE)
+    private readonly userService: UserService,
   ) {}
 
   async execute(id: string): Promise<UserDto> {
-    const userAggregate = await this.userRepository.findById(id);
+    const userAggregate = await this.userService.getUserById(id);
+
     if (!userAggregate) {
-      throw new ResourceNotFoundException('User', id);
+      throw new UserNotFoundException(id);
     }
 
     return LinkGenerator.enhanceUserWithLinks(userAggregate.toDTO() as UserDto);
