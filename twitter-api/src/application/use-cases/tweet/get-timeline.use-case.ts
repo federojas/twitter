@@ -34,20 +34,20 @@ export class GetTimelineUseCase {
     const allTweets = await this.tweetService.getTimelineTweets(
       userId,
       followedUserIds,
+      pagination.page,
+      pagination.pageSize,
     );
 
     const allTweetDtos = allTweets.map((tweet) => tweet.toDTO() as TweetDto);
     const enhancedTweets = LinkGenerator.enhanceTweetsWithLinks(allTweetDtos);
 
-    const { page, pageSize } = pagination;
-    const total = enhancedTweets.length;
-    const startIndex = (page - 1) * pageSize;
-    const endIndex = Math.min(startIndex + pageSize, total);
-
-    const paginatedTweets = enhancedTweets.slice(startIndex, endIndex);
+    const total = await this.tweetService.getTotalTimelineTweets(
+      userId,
+      followedUserIds,
+    );
 
     return new PaginatedResult<TweetDto>(
-      paginatedTweets,
+      enhancedTweets,
       total,
       pagination,
       '/tweets/timeline',

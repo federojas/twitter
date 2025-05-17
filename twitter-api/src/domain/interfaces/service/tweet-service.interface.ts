@@ -5,10 +5,21 @@ export interface TweetService {
 
   getTweetById(tweetId: string): Promise<TweetAggregate | null>;
 
-  getUserTweets(userId: string): Promise<TweetAggregate[]>;
+  getUserTweets(
+    userId: string,
+    page: number,
+    pageSize?: number,
+  ): Promise<TweetAggregate[]>;
 
   getTimelineTweets(
     userId: string,
     followedUserIds: string[],
+    page: number,
+    pageSize?: number,
   ): Promise<TweetAggregate[]>;
+
+  getTotalTimelineTweets(
+    userId: string,
+    followedUserIds: string[],
+  ): Promise<number>;
 }

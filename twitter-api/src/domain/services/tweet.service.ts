@@ -34,19 +34,57 @@ export class TweetServiceImpl implements TweetService {
   async getTimelineTweets(
     userId: string,
     followedUserIds: string[],
+    page: number,
+    pageSize: number,
   ): Promise<TweetAggregate[]> {
-    const userTweets = await this.tweetRepository.findByUserId(userId);
+    const userTweets = await this.getUserTweets(userId);
 
     const followedTweets: TweetAggregate[] = [];
 
     for (const followedId of followedUserIds) {
-      const tweets = await this.tweetRepository.findByUserId(followedId);
+      const tweets = await this.getUserTweets(followedId);
       followedTweets.push(...tweets);
     }
 
+    // IMPORTANTE: Paginando a nivel servicio solo porque
+    // estoy utilizando un repositorio in-memory dummy,
+    // en una base de datos real lo haria a nivel de repositorio
+    // utilizando la query de la base de datos para paginar y
+    // filtrar como sea necesario
+
     const allTweets = [...userTweets, ...followedTweets];
 
-    return this.sortByRecency(allTweets);
+    this.sortByRecency(allTweets);
+
+    const total = allTweets.length;
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, total);
+
+    return allTweets.slice(startIndex, endIndex);
+  }
+
+  async getTotalTimelineTweets(
+    userId: string,
+    followedUserIds: string[],
+  ): Promise<number> {
+    const userTweets = await this.getUserTweets(userId);
+
+    const followedTweets: TweetAggregate[] = [];
+
+    for (const followedId of followedUserIds) {
+      const tweets = await this.getUserTweets(followedId);
+      followedTweets.push(...tweets);
+    }
+
+    // IMPORTANTE: Paginando a nivel servicio solo porque
+    // estoy utilizando un repositorio in-memory dummy,
+    // en una base de datos real lo haria a nivel de repositorio
+    // utilizando la query de la base de datos para paginar y
+    // filtrar como sea necesario
+
+    const allTweets = [...userTweets, ...followedTweets];
+
+    return allTweets.length;
   }
 
   private sortByRecency(tweets: TweetAggregate[]): TweetAggregate[] {
