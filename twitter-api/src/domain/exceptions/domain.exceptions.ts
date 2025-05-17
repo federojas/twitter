@@ -84,6 +84,15 @@ export class ResourceNotFoundException extends DomainException {
   }
 }
 
+/**
+ * Usuario no encontrado (no existe)
+ */
+export class UserNotFoundException extends ResourceNotFoundException {
+  constructor(id?: string) {
+    super('User', id);
+  }
+}
+
 ////////////////////////////////////////////////////////////
 
 // 409

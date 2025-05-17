@@ -3,7 +3,6 @@ import { FollowAggregate } from '../../../domain/aggregates/follow/follow.aggreg
 import {
   ConflictException,
   ResourceNotFoundException,
-  ValidationException,
 } from '../../../domain/exceptions/domain.exceptions';
 import { FollowRepository } from '../../../domain/repositories/follow-repository.interface';
 import {

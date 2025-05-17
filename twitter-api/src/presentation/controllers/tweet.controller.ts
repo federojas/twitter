@@ -12,6 +12,7 @@ import {
 import { CreateTweetDto, TweetDto } from '../../application/dtos/tweet.dto';
 import { CreateTweetUseCase } from '../../application/use-cases/tweet/create-tweet.use-case';
 import { GetTweetByIdUseCase } from '../../application/use-cases/tweet/get-tweets.use-case';
+import { GetTimelineUseCase } from '../../application/use-cases/tweet/get-timeline.use-case';
 import { DomainExceptionFilter } from '../filters/domain-exception.filter';
 import { MissingAuthorizationHeaderException } from 'src/domain/exceptions/domain.exceptions';
 
@@ -25,6 +26,7 @@ export class TweetController {
   constructor(
     private readonly createTweetUseCase: CreateTweetUseCase,
     private readonly getTweetByIdUseCase: GetTweetByIdUseCase,
+    private readonly getTimelineUseCase: GetTimelineUseCase,
   ) {}
 
   @Post()
@@ -39,6 +41,17 @@ export class TweetController {
 
     const userId = authorization;
     return await this.createTweetUseCase.execute(userId, createTweetDto);
+  }
+
+  @Get('timeline')
+  async getTimeline(
+    @Headers('authorization') authorization: string,
+  ): Promise<TweetDto[]> {
+    if (!authorization) {
+      throw new MissingAuthorizationHeaderException();
+    }
+
+    return this.getTimelineUseCase.execute(authorization);
   }
 
   @Get(':id')
