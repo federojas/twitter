@@ -12,10 +12,8 @@ import { CreateUserDto, UserDto } from '../../application/dtos/user.dto';
 import { FollowUserDto } from '../../application/dtos/follow.dto';
 import { CreateUserUseCase } from '../../application/use-cases/user/create-user.use-case';
 import { GetUserByIdUseCase } from '../../application/use-cases/user/get-users.use-case';
-import {
-  GetFollowersUseCase,
-  GetFollowingUseCase,
-} from '../../application/use-cases/follow/get-user-follows.use-case';
+import { GetFollowersUseCase } from '../../application/use-cases/user/get-followers.use-case';
+import { GetFollowingUseCase } from '../../application/use-cases/user/get-following.use-case';
 import { DomainExceptionFilter } from '../filters/domain-exception.filter';
 import { UnimplementedException } from 'src/domain/exceptions/domain.exceptions';
 

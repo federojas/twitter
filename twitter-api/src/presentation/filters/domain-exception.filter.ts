@@ -9,6 +9,7 @@ import {
   ConflictException,
   DomainException,
   ForbiddenException,
+  MethodNotAllowedException,
   ResourceNotFoundException,
   UnauthorizedException,
   UnimplementedException,
@@ -34,6 +35,8 @@ export class DomainExceptionFilter implements ExceptionFilter {
       status = HttpStatus.UNAUTHORIZED;
     } else if (exception instanceof ForbiddenException) {
       status = HttpStatus.FORBIDDEN;
+    } else if (exception instanceof MethodNotAllowedException) {
+      status = HttpStatus.METHOD_NOT_ALLOWED;
     } else if (exception instanceof UnimplementedException) {
       status = HttpStatus.NOT_IMPLEMENTED;
     }

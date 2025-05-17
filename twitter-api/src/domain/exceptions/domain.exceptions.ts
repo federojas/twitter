@@ -69,6 +69,19 @@ export class ForbiddenException extends DomainException {
 
 ////////////////////////////////////////////////////////////
 
+// 405
+
+/**
+ * Error de método no permitido
+ */
+export class MethodNotAllowedException extends DomainException {
+  constructor(message?: string) {
+    super(message || 'Method not allowed.');
+  }
+}
+
+////////////////////////////////////////////////////////////
+
 // 404
 
 /**
@@ -136,6 +149,8 @@ export class ServerException extends DomainException {
     super(message || 'Internal server error.');
   }
 }
+
+////////////////////////////////////////////////////////////
 
 // 501
 
