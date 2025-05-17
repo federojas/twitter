@@ -1,4 +1,4 @@
-import { TweetAggregate } from '../aggregates/tweet/tweet.aggregate';
+import { TweetAggregate } from '../../aggregates/tweet/tweet.aggregate';
 
 export interface TweetRepository {
   create(tweet: TweetAggregate): Promise<void>;

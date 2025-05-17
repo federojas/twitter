@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TweetAggregate } from '../../../../domain/aggregates/tweet/tweet.aggregate';
-import { TweetRepository } from '../../../../domain/repository-interfaces/tweet-repository.interface';
+import { TweetRepository } from '../../../../domain/interfaces/repository/tweet-repository.interface';
 
 @Injectable()
 export class TweetRepositoryImpl implements TweetRepository {

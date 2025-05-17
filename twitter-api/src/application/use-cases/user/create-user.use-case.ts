@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UserAggregate } from '../../../domain/aggregates/user/user.aggregate';
-import { UserRepository } from '../../../domain/repository-interfaces/user-repository.interface';
-import { USER_REPOSITORY } from '../../../domain/repository-interfaces/repository.tokens';
+import { UserRepository } from '../../../domain/interfaces/repository/user-repository.interface';
+import { USER_REPOSITORY } from '../../../domain/interfaces/repository/repository.tokens';
 import { CreateUserDto, UserDto } from '../../dtos/user.dto';
 import { ConflictException } from 'src/domain/exceptions/domain.exceptions';
 import { LinkGenerator } from 'src/application/utils/link-generator';

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { TweetRepository } from '../../../domain/repository-interfaces/tweet-repository.interface';
-import { TWEET_REPOSITORY } from '../../../domain/repository-interfaces/repository.tokens';
+import { TweetRepository } from '../../../domain/interfaces/repository/tweet-repository.interface';
+import { TWEET_REPOSITORY } from '../../../domain/interfaces/repository/repository.tokens';
 import { TweetDto } from '../../dtos/tweet.dto';
 import { ResourceNotFoundException } from '../../../domain/exceptions/domain.exceptions';
 import { LinkGenerator } from '../../utils/link-generator';

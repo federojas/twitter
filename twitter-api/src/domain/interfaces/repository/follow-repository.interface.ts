@@ -1,4 +1,4 @@
-import { FollowAggregate } from '../aggregates/follow/follow.aggregate';
+import { FollowAggregate } from '../../aggregates/follow/follow.aggregate';
 
 export interface FollowRepository {
   create(follow: FollowAggregate): Promise<void>;

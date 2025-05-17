@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UserAggregate } from '../../../../domain/aggregates/user/user.aggregate';
-import { UserRepository } from '../../../../domain/repository-interfaces/user-repository.interface';
+import { UserRepository } from '../../../../domain/interfaces/repository/user-repository.interface';
 
 @Injectable()
 export class UserRepositoryImpl implements UserRepository {
