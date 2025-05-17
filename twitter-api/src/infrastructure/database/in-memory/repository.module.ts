@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import {
+  FOLLOW_REPOSITORY,
   TWEET_REPOSITORY,
   USER_REPOSITORY,
 } from '../../../domain/repositories/repository.tokens';
 import { UserRepositoryImpl } from './repositories/user.repository';
 import { TweetRepositoryImpl } from './repositories/tweet.repository';
+import { FollowRepositoryImpl } from './repositories/follow.repository';
 
 @Module({
   providers: [
@@ -16,7 +18,11 @@ import { TweetRepositoryImpl } from './repositories/tweet.repository';
       provide: TWEET_REPOSITORY,
       useClass: TweetRepositoryImpl,
     },
+    {
+      provide: FOLLOW_REPOSITORY,
+      useClass: FollowRepositoryImpl,
+    },
   ],
-  exports: [USER_REPOSITORY, TWEET_REPOSITORY],
+  exports: [USER_REPOSITORY, TWEET_REPOSITORY, FOLLOW_REPOSITORY],
 })
 export class RepositoryModule {}
