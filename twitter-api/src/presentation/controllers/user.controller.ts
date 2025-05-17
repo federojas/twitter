@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto, UserDto } from '../../application/dtos/user.dto';
 import { CreateUserUseCase } from '../../application/use-cases/user/create-user.use-case';
-import { GetUserByIdUseCase } from '../../application/use-cases/user/get-user-by-id.use-case';
+import { GetUserByIdUseCase } from '../../application/use-cases/user/get-users.use-case';
 
 /**
  * User Controller
@@ -28,9 +28,6 @@ export class UserController {
     return this.createUserUseCase.execute(createUserDto);
   }
 
-  /**
-   * Get a user by ID
-   */
   @Get(':id')
   async getUserById(@Param('id') id: string): Promise<UserDto> {
     return this.getUserByIdUseCase.execute(id);

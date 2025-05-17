@@ -30,7 +30,6 @@ export class UserAggregate {
     displayName: string,
     id?: string,
   ): UserAggregate {
-    // Validate username
     if (!username) {
       throw new Error('Username cannot be empty');
     }
@@ -43,14 +42,12 @@ export class UserAggregate {
       throw new Error('Username cannot exceed 20 characters');
     }
 
-    // Username can only contain alphanumeric characters and underscores
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
       throw new Error(
         'Username can only contain letters, numbers, and underscores',
       );
     }
 
-    // Validate display name
     if (!displayName) {
       throw new Error('Display name cannot be empty');
     }

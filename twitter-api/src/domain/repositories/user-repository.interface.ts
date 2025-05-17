@@ -10,8 +10,4 @@ export interface UserRepository {
   create(user: UserAggregate): Promise<void>;
 
   existsByUsername(username: string): Promise<boolean>;
-
-  // Read-optimized methods
-  findByDisplayName(displayName: string): Promise<UserAggregate[]>;
-  findRecentUsers(limit: number): Promise<UserAggregate[]>;
 }

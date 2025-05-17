@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ApplicationModule } from '../application/application.module';
 import { UserController } from './controllers/user.controller';
+import { TweetController } from './controllers/tweet.controller';
 
 @Module({
   imports: [ApplicationModule],
-  controllers: [UserController],
+  controllers: [UserController, TweetController],
 })
 export class PresentationModule {}
