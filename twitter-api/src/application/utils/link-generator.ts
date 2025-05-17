@@ -119,4 +119,43 @@ export class LinkGenerator {
       this.enhanceFollowUserWithLinks(followUser),
     );
   }
+
+  static generatePaginationLinks(
+    resourceUrl: string,
+    page: number,
+    pageSize: number,
+    pageCount: number,
+  ): {
+    self: string;
+    first: string;
+    prev?: string;
+    next?: string;
+    last: string;
+  } {
+    const baseUrl = `${this.API_BASE_URL}${resourceUrl}`;
+    const links: {
+      self: string;
+      first: string;
+      prev?: string;
+      next?: string;
+      last: string;
+    } = {
+      self: `${baseUrl}?page=${page}&pageSize=${pageSize}`,
+      first: `${baseUrl}?page=1&pageSize=${pageSize}`,
+      last:
+        pageCount > 0
+          ? `${baseUrl}?page=${pageCount}&pageSize=${pageSize}`
+          : `${baseUrl}?page=1&pageSize=${pageSize}`,
+    };
+
+    if (page > 1) {
+      links.prev = `${baseUrl}?page=${page - 1}&pageSize=${pageSize}`;
+    }
+
+    if (page < pageCount) {
+      links.next = `${baseUrl}?page=${page + 1}&pageSize=${pageSize}`;
+    }
+
+    return links;
+  }
 }

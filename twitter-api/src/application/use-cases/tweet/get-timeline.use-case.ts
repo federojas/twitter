@@ -11,6 +11,7 @@ import {
 import { TweetDto } from '../../dtos/tweet.dto';
 import { TweetAggregate } from '../../../domain/aggregates/tweet/tweet.aggregate';
 import { LinkGenerator } from '../../utils/link-generator';
+import { PaginatedResult, PaginationParams } from '../../dtos/pagination.dto';
 
 @Injectable()
 export class GetTimelineUseCase {
@@ -23,7 +24,10 @@ export class GetTimelineUseCase {
     private readonly followRepository: FollowRepository,
   ) {}
 
-  async execute(userId: string): Promise<TweetDto[]> {
+  async execute(
+    userId: string,
+    pagination: PaginationParams = new PaginationParams(),
+  ): Promise<PaginatedResult<TweetDto>> {
     const userExists = await this.userRepository.findById(userId);
     if (!userExists) {
       throw new UserNotFoundException(userId);
@@ -49,7 +53,21 @@ export class GetTimelineUseCase {
       return dateB - dateA;
     });
 
-    const tweetDtos = allTweets.map((tweet) => tweet.toDTO() as TweetDto);
-    return LinkGenerator.enhanceTweetsWithLinks(tweetDtos);
+    const allTweetDtos = allTweets.map((tweet) => tweet.toDTO() as TweetDto);
+    const enhancedTweets = LinkGenerator.enhanceTweetsWithLinks(allTweetDtos);
+
+    const { page, pageSize } = pagination;
+    const total = enhancedTweets.length;
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, total);
+
+    const paginatedTweets = enhancedTweets.slice(startIndex, endIndex);
+
+    return new PaginatedResult<TweetDto>(
+      paginatedTweets,
+      total,
+      pagination,
+      '/tweets/timeline',
+    );
   }
 }

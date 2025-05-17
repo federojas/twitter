@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   UseFilters,
 } from '@nestjs/common';
 import { CreateTweetDto, TweetDto } from '../../application/dtos/tweet.dto';
@@ -15,6 +16,10 @@ import { GetTweetByIdUseCase } from '../../application/use-cases/tweet/get-tweet
 import { GetTimelineUseCase } from '../../application/use-cases/tweet/get-timeline.use-case';
 import { DomainExceptionFilter } from '../filters/domain-exception.filter';
 import { MissingAuthorizationHeaderException } from 'src/domain/exceptions/domain.exceptions';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from '../../application/dtos/pagination.dto';
 
 /**
  * Tweet Controller
@@ -46,12 +51,19 @@ export class TweetController {
   @Get('timeline')
   async getTimeline(
     @Headers('authorization') authorization: string,
-  ): Promise<TweetDto[]> {
+    @Query('page') page?: number,
+    @Query('pageSize') pageSize?: number,
+  ): Promise<PaginatedResult<TweetDto>> {
     if (!authorization) {
       throw new MissingAuthorizationHeaderException();
     }
 
-    return this.getTimelineUseCase.execute(authorization);
+    const pagination = new PaginationParams(
+      page ? Number(page) : undefined,
+      pageSize ? Number(pageSize) : undefined,
+    );
+
+    return this.getTimelineUseCase.execute(authorization, pagination);
   }
 
   @Get(':id')
