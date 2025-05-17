@@ -3,6 +3,7 @@ import { UserRepository } from '../../../domain/repositories/user-repository.int
 import { USER_REPOSITORY } from '../../../domain/repositories/repository.tokens';
 import { UserDto } from '../../dtos/user.dto';
 import { ResourceNotFoundException } from 'src/domain/exceptions/domain.exceptions';
+import { LinkGenerator } from 'src/application/utils/link-generator';
 
 @Injectable()
 export class GetUserByIdUseCase {
@@ -17,6 +18,6 @@ export class GetUserByIdUseCase {
       throw new ResourceNotFoundException('User', id);
     }
 
-    return userAggregate.toDTO();
+    return LinkGenerator.enhanceUserWithLinks(userAggregate.toDTO() as UserDto);
   }
 }

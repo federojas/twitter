@@ -7,6 +7,7 @@ import {
 import { UserRepository } from '../../../domain/repositories/user-repository.interface';
 import { FollowUserDto } from '../../dtos/follow.dto';
 import { UserNotFoundException } from 'src/domain/exceptions/domain.exceptions';
+import { LinkGenerator } from '../../utils/link-generator';
 
 @Injectable()
 export class GetFollowersUseCase {
@@ -37,16 +38,19 @@ export class GetFollowersUseCase {
           followerId,
         );
 
-        followerDtos.push({
+        const followUserDto: FollowUserDto = {
           id: follower.getId(),
           username: follower.getUsername(),
           displayName: follower.getDisplayName(),
           following: isFollowing,
-        });
+          links: { self: '' }, // Will be populated by LinkGenerator
+        };
+
+        followerDtos.push(followUserDto);
       }
     }
 
-    return followerDtos;
+    return LinkGenerator.enhanceFollowUsersWithLinks(followerDtos);
   }
 }
 
@@ -74,15 +78,18 @@ export class GetFollowingUseCase {
       const followed = await this.userRepository.findById(followedId);
 
       if (followed) {
-        followingDtos.push({
+        const followUserDto: FollowUserDto = {
           id: followed.getId(),
           username: followed.getUsername(),
           displayName: followed.getDisplayName(),
           following: true,
-        });
+          links: { self: '' }, // Will be populated by LinkGenerator
+        };
+
+        followingDtos.push(followUserDto);
       }
     }
 
-    return followingDtos;
+    return LinkGenerator.enhanceFollowUsersWithLinks(followingDtos);
   }
 }

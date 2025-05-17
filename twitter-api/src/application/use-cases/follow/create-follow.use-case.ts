@@ -11,6 +11,7 @@ import {
 } from '../../../domain/repositories/repository.tokens';
 import { UserRepository } from '../../../domain/repositories/user-repository.interface';
 import { FollowDto } from '../../dtos/follow.dto';
+import { LinkGenerator } from 'src/application/utils/link-generator';
 
 @Injectable()
 export class CreateFollowUseCase {
@@ -44,12 +45,7 @@ export class CreateFollowUseCase {
     const followAggregate = FollowAggregate.create(followerId, followedId);
     await this.followRepository.create(followAggregate);
 
-    const followDTO = followAggregate.toDTO();
-    return {
-      id: followDTO.id,
-      followerId: followDTO.followerId,
-      followedId: followDTO.followedId,
-      createdAt: followDTO.createdAt,
-    };
+    const followDTO = followAggregate.toDTO() as FollowDto;
+    return LinkGenerator.enhanceFollowWithLinks(followDTO);
   }
 }

@@ -17,6 +17,13 @@ export class FollowDto {
   followerId: string;
   followedId: string;
   createdAt: string;
+
+  // HATEOAS
+  links: {
+    self: string;
+    follower: string;
+    followed: string;
+  };
 }
 
 /**
@@ -27,4 +34,9 @@ export class FollowUserDto {
   username: string;
   displayName: string;
   following: boolean;
+
+  // HATEOAS
+  links: {
+    self: string;
+  };
 }

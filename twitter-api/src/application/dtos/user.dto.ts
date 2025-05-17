@@ -43,4 +43,9 @@ export class UserDto {
   username: string;
   displayName: string;
   createdAt: Date;
+
+  // HATEOAS
+  links: {
+    self: string;
+  };
 }

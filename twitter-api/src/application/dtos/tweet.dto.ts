@@ -21,4 +21,10 @@ export class TweetDto {
   content: string;
   userId: string;
   createdAt: string;
+
+  // HATEOAS
+  links: {
+    self: string;
+    user: string;
+  };
 }

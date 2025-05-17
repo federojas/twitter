@@ -4,6 +4,7 @@ import { UserRepository } from '../../../domain/repositories/user-repository.int
 import { USER_REPOSITORY } from '../../../domain/repositories/repository.tokens';
 import { CreateUserDto, UserDto } from '../../dtos/user.dto';
 import { ConflictException } from 'src/domain/exceptions/domain.exceptions';
+import { LinkGenerator } from 'src/application/utils/link-generator';
 
 @Injectable()
 export class CreateUserUseCase {
@@ -30,6 +31,6 @@ export class CreateUserUseCase {
 
     await this.userRepository.create(userAggregate);
 
-    return userAggregate.toDTO();
+    return LinkGenerator.enhanceUserWithLinks(userAggregate.toDTO() as UserDto);
   }
 }

@@ -6,6 +6,7 @@ import { CreateTweetDto, TweetDto } from '../../dtos/tweet.dto';
 import { UserRepository } from '../../../domain/repositories/user-repository.interface';
 import { USER_REPOSITORY } from '../../../domain/repositories/repository.tokens';
 import { UserNotFoundException } from 'src/domain/exceptions/domain.exceptions';
+import { LinkGenerator } from '../../utils/link-generator';
 
 @Injectable()
 export class CreateTweetUseCase {
@@ -32,6 +33,7 @@ export class CreateTweetUseCase {
 
     await this.tweetRepository.create(tweetAggregate);
 
-    return tweetAggregate.toDTO();
+    const tweetDto = tweetAggregate.toDTO() as TweetDto;
+    return LinkGenerator.enhanceTweetWithLinks(tweetDto);
   }
 }

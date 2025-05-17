@@ -10,6 +10,7 @@ import {
 } from '../../../domain/repositories/repository.tokens';
 import { TweetDto } from '../../dtos/tweet.dto';
 import { TweetAggregate } from '../../../domain/aggregates/tweet/tweet.aggregate';
+import { LinkGenerator } from '../../utils/link-generator';
 
 @Injectable()
 export class GetTimelineUseCase {
@@ -48,6 +49,7 @@ export class GetTimelineUseCase {
       return dateB - dateA;
     });
 
-    return allTweets.map((tweet) => tweet.toDTO());
+    const tweetDtos = allTweets.map((tweet) => tweet.toDTO() as TweetDto);
+    return LinkGenerator.enhanceTweetsWithLinks(tweetDtos);
   }
 }

@@ -3,6 +3,7 @@ import { TweetRepository } from '../../../domain/repositories/tweet-repository.i
 import { TWEET_REPOSITORY } from '../../../domain/repositories/repository.tokens';
 import { TweetDto } from '../../dtos/tweet.dto';
 import { ResourceNotFoundException } from '../../../domain/exceptions/domain.exceptions';
+import { LinkGenerator } from '../../utils/link-generator';
 
 @Injectable()
 export class GetTweetByIdUseCase {
@@ -16,6 +17,7 @@ export class GetTweetByIdUseCase {
     if (!tweet) {
       throw new ResourceNotFoundException('Tweet', id);
     }
-    return tweet.toDTO();
+    const tweetDto = tweet.toDTO() as TweetDto;
+    return LinkGenerator.enhanceTweetWithLinks(tweetDto);
   }
 }
