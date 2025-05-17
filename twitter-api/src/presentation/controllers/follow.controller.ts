@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  Get,
   Headers,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   UseFilters,
 } from '@nestjs/common';
@@ -11,11 +13,15 @@ import { CreateFollowDto, FollowDto } from '../../application/dtos/follow.dto';
 import { CreateFollowUseCase } from '../../application/use-cases/follow/create-follow.use-case';
 import { DomainExceptionFilter } from '../filters/domain-exception.filter';
 import { MissingAuthorizationHeaderException } from '../../domain/exceptions/domain.exceptions';
+import { GetFollowByIdUseCase } from '../../application/use-cases/follow/get-follows.use-case';
 
 @Controller('follows')
 @UseFilters(DomainExceptionFilter)
 export class FollowController {
-  constructor(private readonly createFollowUseCase: CreateFollowUseCase) {}
+  constructor(
+    private readonly createFollowUseCase: CreateFollowUseCase,
+    private readonly getFollowByIdUseCase: GetFollowByIdUseCase,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -29,5 +35,10 @@ export class FollowController {
 
     const followerId = authorization;
     return this.createFollowUseCase.execute(followerId, createFollowDto.userId);
+  }
+
+  @Get(':id')
+  async getFollowById(@Param('id') id: string): Promise<FollowDto> {
+    return this.getFollowByIdUseCase.execute(id);
   }
 }

@@ -15,7 +15,7 @@ import { GetUserByIdUseCase } from '../../application/use-cases/user/get-users.u
 import {
   GetFollowersUseCase,
   GetFollowingUseCase,
-} from '../../application/use-cases/follow/get-follows.use-case';
+} from '../../application/use-cases/follow/get-user-follows.use-case';
 import { DomainExceptionFilter } from '../filters/domain-exception.filter';
 
 /**

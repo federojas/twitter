@@ -5,11 +5,22 @@ import { CreateFollowUseCase } from './follow/create-follow.use-case';
 import {
   GetFollowersUseCase,
   GetFollowingUseCase,
-} from './follow/get-follows.use-case';
+} from './follow/get-user-follows.use-case';
+import { GetFollowByIdUseCase } from './follow/get-follows.use-case';
 
 @Module({
   imports: [DomainModule, InfrastructureModule],
-  providers: [CreateFollowUseCase, GetFollowersUseCase, GetFollowingUseCase],
-  exports: [CreateFollowUseCase, GetFollowersUseCase, GetFollowingUseCase],
+  providers: [
+    CreateFollowUseCase,
+    GetFollowersUseCase,
+    GetFollowingUseCase,
+    GetFollowByIdUseCase,
+  ],
+  exports: [
+    CreateFollowUseCase,
+    GetFollowersUseCase,
+    GetFollowingUseCase,
+    GetFollowByIdUseCase,
+  ],
 })
 export class FollowUseCasesModule {}
