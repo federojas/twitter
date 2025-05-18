@@ -92,18 +92,6 @@ export class UserAggregate {
     );
   }
 
-  /**
-   * Factory para reconstituir un usuario desde persistencia
-   */
-  public static reconstitute(
-    id: string,
-    username: string,
-    displayName: string,
-    createdAt: Date,
-  ): UserAggregate {
-    return new UserAggregate(id, username, displayName, createdAt);
-  }
-
   public hasUsername(username: string): boolean {
     return this.username === username;
   }
