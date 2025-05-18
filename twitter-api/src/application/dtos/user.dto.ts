@@ -75,13 +75,4 @@ export class UserDto {
     example: '2023-06-01T12:00:00.000Z',
   })
   createdAt: Date;
-
-  @ApiProperty({
-    description: 'HATEOAS links for the user',
-    example: { self: '/users/123e4567-e89b-12d3-a456-426614174000' },
-  })
-  // HATEOAS
-  links: {
-    self: string;
-  };
 }

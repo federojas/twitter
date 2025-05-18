@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { TweetDto } from '../../dtos/tweet.dto';
-import { LinkGenerator } from '../../utils/link-generator';
 import { PaginatedResult, PaginationParams } from '../../dtos/pagination.dto';
 import { UserService } from 'src/domain/interfaces/service/user-service.interface';
 import { TweetService } from 'src/domain/interfaces/service/tweet-service.interface';
@@ -39,18 +38,12 @@ export class GetTimelineUseCase {
     );
 
     const allTweetDtos = allTweets.map((tweet) => tweet.toDTO() as TweetDto);
-    const enhancedTweets = LinkGenerator.enhanceTweetsWithLinks(allTweetDtos);
 
     const total = await this.tweetService.getTotalTimelineTweets(
       userId,
       followedUserIds,
     );
 
-    return new PaginatedResult<TweetDto>(
-      enhancedTweets,
-      total,
-      pagination,
-      '/tweets/timeline',
-    );
+    return new PaginatedResult<TweetDto>(allTweetDtos, total, pagination);
   }
 }

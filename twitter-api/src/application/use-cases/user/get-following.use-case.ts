@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { FollowUserDto } from '../../dtos/follow.dto';
-import { LinkGenerator } from '../../utils/link-generator';
 import { FollowService } from 'src/domain/interfaces/service/follow-service.interface';
 import { UserService } from 'src/domain/interfaces/service/user-service.interface';
 import {
@@ -34,13 +33,12 @@ export class GetFollowingUseCase {
           username: followed.getUsername(),
           displayName: followed.getDisplayName(),
           following: true,
-          links: { self: '' }, // Will be populated by LinkGenerator
         };
 
         followingDtos.push(followUserDto);
       }
     }
 
-    return LinkGenerator.enhanceFollowUsersWithLinks(followingDtos);
+    return followingDtos;
   }
 }

@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { DomainExceptionFilter } from './presentation/filters/domain-exception.filter';
+import { HateoasInterceptor } from './presentation/interceptors/hateoas.interceptor';
 
 const SWAGGER_PATH = 'swagger';
 
@@ -18,6 +19,8 @@ async function bootstrap() {
     }),
   );
   app.useGlobalFilters(new DomainExceptionFilter());
+
+  app.useGlobalInterceptors(new HateoasInterceptor());
 
   const config = new DocumentBuilder()
     .setTitle('Twitter API')

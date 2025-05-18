@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { FollowDto } from '../../dtos/follow.dto';
-import { LinkGenerator } from 'src/application/utils/link-generator';
 import { FollowService } from 'src/domain/interfaces/service/follow-service.interface';
 import { UserService } from 'src/domain/interfaces/service/user-service.interface';
 import {
@@ -27,6 +26,6 @@ export class CreateFollowUseCase {
     );
 
     const followDTO = followAggregate.toDTO() as FollowDto;
-    return LinkGenerator.enhanceFollowWithLinks(followDTO);
+    return followDTO;
   }
 }
