@@ -1,0 +1,15 @@
+services:
+  twitter-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: twitter-api
+    environment:
+      - API_URL=http://api.localhost
+      - API_PORT=3000
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./src:/app/src
+    restart: unless-stopped
+    command: node dist/main
