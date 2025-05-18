@@ -2,36 +2,34 @@ import {
   Body,
   Controller,
   Get,
-  Headers,
   HttpCode,
   HttpStatus,
   Param,
   Post,
   Query,
   UseFilters,
-  Req,
+  UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiParam,
   ApiQuery,
+  ApiBearerAuth,
 } from '@nestjs/swagger';
 import { CreateTweetDto, TweetDto } from '../../application/dtos/tweet.dto';
 import { CreateTweetUseCase } from '../../application/use-cases/tweet/create-tweet.use-case';
 import { GetTweetByIdUseCase } from '../../application/use-cases/tweet/get-tweets.use-case';
 import { GetTimelineUseCase } from '../../application/use-cases/tweet/get-timeline.use-case';
 import { DomainExceptionFilter } from '../filters/domain-exception.filter';
-import {
-  MissingAuthorizationHeaderException,
-  UnimplementedException,
-} from 'src/domain/exceptions/domain.exceptions';
+import { UnimplementedException } from 'src/domain/exceptions/domain.exceptions';
 import {
   PaginatedResult,
   PaginationParams,
 } from '../../application/dtos/pagination.dto';
+import { AuthGuard } from '../guards/auth.guard';
+import { CurrentUser } from '../decorators/current-user.decorator';
 
 /**
  * Tweet Controller
@@ -51,6 +49,8 @@ export class TweetController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new tweet' })
   @ApiResponse({
     status: 201,
@@ -60,22 +60,15 @@ export class TweetController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @ApiResponse({ status: 401, description: 'Missing Authorization header' })
   async createTweet(
-    @Req() request: Request,
+    @CurrentUser() userId: string,
     @Body() createTweetDto: CreateTweetDto,
   ): Promise<TweetDto> {
-    const authorization = request.headers.authorization;
-    if (!authorization) {
-      throw new MissingAuthorizationHeaderException();
-    }
-
-    const userId = authorization.startsWith('Bearer ')
-      ? authorization.substring(7).trim()
-      : authorization.trim();
-
     return await this.createTweetUseCase.execute(userId, createTweetDto);
   }
 
   @Get()
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get timeline tweets' })
   @ApiQuery({
     name: 'type',
@@ -116,20 +109,11 @@ export class TweetController {
   @ApiResponse({ status: 401, description: 'Missing Authorization header' })
   @ApiResponse({ status: 501, description: 'Not implemented' })
   async getTimeline(
-    @Req() request: Request,
+    @CurrentUser() userId: string,
     @Query('type') type?: string,
     @Query('page') page?: number,
     @Query('pageSize') pageSize?: number,
   ): Promise<PaginatedResult<TweetDto>> {
-    const authorization = request.headers.authorization;
-    if (!authorization) {
-      throw new MissingAuthorizationHeaderException();
-    }
-
-    const userId = authorization.startsWith('Bearer ')
-      ? authorization.substring(7).trim()
-      : authorization.trim();
-
     const pagination = new PaginationParams(
       page ? Number(page) : undefined,
       pageSize ? Number(pageSize) : undefined,

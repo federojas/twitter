@@ -5,7 +5,6 @@ import { AppModule } from './app.module';
 import { DomainExceptionFilter } from './presentation/filters/domain-exception.filter';
 
 const SWAGGER_PATH = 'swagger';
-const SECURITY_SCHEME_NAME = 'Bearer';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -45,14 +44,9 @@ async function bootstrap() {
     .addTag('users')
     .addTag('tweets')
     .addTag('follows')
-    .addSecurity(SECURITY_SCHEME_NAME, {
-      type: 'http',
-      scheme: 'bearer',
-    })
+    .addBearerAuth()
     .build();
   const document = SwaggerModule.createDocument(app, config);
-
-  document.security = [{ [SECURITY_SCHEME_NAME]: [] }];
 
   SwaggerModule.setup(SWAGGER_PATH, app, document, {
     swaggerOptions: {
