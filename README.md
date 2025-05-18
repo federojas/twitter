@@ -1,5 +1,8 @@
 # Twitter API
 
+Versión simplificada de una plataforma de microblogging similar a twitter que
+permite a los usuarios publicar, seguir y ver el timeline de tweets.
+
 El proyecto esta containerizado usando Docker y Docker Compose.
 
 ## Prerequisitos
@@ -9,7 +12,7 @@ El proyecto esta containerizado usando Docker y Docker Compose.
 
 ## Variables de entorno
 
-Las variables de entornp ya se encuentran definidas en `docker-compose.yml` para un despliegue rápido localmente (esto no es adecuado para un ambiente de producción).
+Las variables de entorno ya se encuentran definidas en `docker-compose.yml` para un despliegue rápido localmente (esto no es adecuado para un ambiente de producción).
 
 ## Inicialización
 
@@ -17,7 +20,7 @@ Las variables de entornp ya se encuentran definidas en `docker-compose.yml` para
 docker-compose up -d
 ```
 
-Este comando construira la aplicación y la correrá en modo detached. Se podrá acceder a la api en **http://api.localhost:3000**.
+Este comando construirá la aplicación y la ejecutará en modo detached. Se podrá acceder a la API en **http://api.localhost:3000**.
 
 ## Finalización
 
