@@ -4,6 +4,7 @@ import { CreateUserDto, UserDto } from '../../dtos/user.dto';
 import { LinkGenerator } from 'src/application/utils/link-generator';
 import { UserService } from 'src/domain/interfaces/service/user-service.interface';
 import { USER_SERVICE } from 'src/domain/interfaces/service/service.tokens';
+import { ConflictException } from 'src/domain/exceptions/domain.exceptions';
 
 @Injectable()
 export class CreateUserUseCase {
@@ -18,7 +19,7 @@ export class CreateUserUseCase {
     );
 
     if (!isUsernameAvailable) {
-      throw new Error(
+      throw new ConflictException(
         `User with username ${createUserDto.username} already exists`,
       );
     }

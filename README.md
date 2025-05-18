@@ -22,6 +22,12 @@ docker-compose up -d
 
 Este comando construirá la aplicación y la ejecutará en modo detached. Se podrá acceder a la API en **http://api.localhost:3000**.
 
+También se puede interactuar con la API a través de una Swagger UI en **http://api.localhost:3000/swagger**.
+
+## Autenticación
+
+Para los endpoints que requieren autenticación, usar el header **Authorization** con el valor **Bearer <user-id>** donde el **<user-id>** es el ID del usuario que esta haciendo el request (simulando ser un JWT).
+
 ## Finalización
 
 ```bash
