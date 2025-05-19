@@ -6,17 +6,30 @@ import {
   HttpStatus,
   Param,
   Post,
+  Query,
   UseFilters,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { CreateUserDto, UserDto } from '../../application/dtos/user.dto';
 import { FollowUserDto } from '../../application/dtos/follow.dto';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from '../../application/dtos/pagination.dto';
 import { CreateUserUseCase } from '../../application/use-cases/user/create-user.use-case';
-import { GetUserByIdUseCase } from '../../application/use-cases/user/get-users.use-case';
+import { GetUsersUseCase } from '../../application/use-cases/user/get-users.use-case';
 import { GetFollowersUseCase } from '../../application/use-cases/user/get-followers.use-case';
 import { GetFollowingUseCase } from '../../application/use-cases/user/get-following.use-case';
 import { DomainExceptionFilter } from '../filters/domain-exception.filter';
-import { UnimplementedException } from 'src/domain/exceptions/domain.exceptions';
+import { GetUserByIdUseCase } from '../../application/use-cases/user/get-user-by-id.use-case';
+import { AuthGuard } from '../guards/auth.guard';
 
 /**
  * User Controller
@@ -31,6 +44,7 @@ export class UserController {
     private readonly getUserByIdUseCase: GetUserByIdUseCase,
     private readonly getFollowersUseCase: GetFollowersUseCase,
     private readonly getFollowingUseCase: GetFollowingUseCase,
+    private readonly getUsersUseCase: GetUsersUseCase,
   ) {}
 
   @Post()
@@ -47,14 +61,54 @@ export class UserController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all users' })
-  @ApiResponse({ status: 501, description: 'Not implemented' })
-  async getUsers(): Promise<null> {
-    throw new UnimplementedException(
-      'Querying over all users is not implemented.',
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Get users with pagination' })
+  @ApiResponse({ status: 401, description: 'Missing Authorization header' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+  })
+  @ApiQuery({
+    name: 'pageSize',
+    required: false,
+    description: 'Number of items per page',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Users retrieved successfully',
+    schema: {
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            $ref: '#/components/schemas/UserDto',
+          },
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            total: { type: 'number' },
+            page: { type: 'number' },
+            pageSize: { type: 'number' },
+            pageCount: { type: 'number' },
+            hasNextPage: { type: 'boolean' },
+            hasPrevPage: { type: 'boolean' },
+          },
+        },
+      },
+    },
+  })
+  async getUsers(
+    @Query('page') page?: number,
+    @Query('pageSize') pageSize?: number,
+  ): Promise<PaginatedResult<UserDto>> {
+    const pagination = new PaginationParams(
+      page ? Number(page) : undefined,
+      pageSize ? Number(pageSize) : undefined,
     );
 
-    return Promise.resolve(null);
+    return this.getUsersUseCase.execute(pagination);
   }
 
   @Get(':id')
