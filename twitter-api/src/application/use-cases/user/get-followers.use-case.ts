@@ -6,6 +6,8 @@ import {
   FOLLOW_SERVICE,
   USER_SERVICE,
 } from 'src/domain/interfaces/service/service.tokens';
+import { PaginatedResult } from 'src/application/dtos/pagination.dto';
+import { PaginationParams } from 'src/application/dtos/pagination.dto';
 
 @Injectable()
 export class GetFollowersUseCase {
@@ -16,10 +18,17 @@ export class GetFollowersUseCase {
     private readonly userService: UserService,
   ) {}
 
-  async execute(userId: string): Promise<FollowUserDto[]> {
+  async execute(
+    userId: string,
+    pagination: PaginationParams = new PaginationParams(),
+  ): Promise<PaginatedResult<FollowUserDto>> {
     await this.userService.getUserById(userId);
 
-    const follows = await this.followService.getUserFollowers(userId);
+    const follows = await this.followService.getUserFollowers(
+      userId,
+      pagination.page,
+      pagination.pageSize,
+    );
 
     const followerDtos: FollowUserDto[] = [];
 
@@ -44,6 +53,8 @@ export class GetFollowersUseCase {
       }
     }
 
-    return followerDtos;
+    const total = await this.followService.getTotalFollowers(userId);
+
+    return new PaginatedResult<FollowUserDto>(followerDtos, total, pagination);
   }
 }

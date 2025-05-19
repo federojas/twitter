@@ -27,7 +27,10 @@ export class GetTimelineUseCase {
   ): Promise<PaginatedResult<TweetDto>> {
     await this.userService.getUserById(userId);
 
-    const follows = await this.followService.getUserFollowing(userId);
+    // IMPORTANTE: Esto lo hago únicamente porque estoy usando una base de datos in-memory
+    // En una base de datos real, obtendría la timeline de tweets sin necesidad
+    // de obtener todos los seguidos a través de la consulta de la base de datos.
+    const follows = await this.followService.getAllUserFollowing(userId);
     const followedUserIds = follows.map((follow) => follow.getFollowedId());
 
     const allTweets = await this.tweetService.getTimelineTweets(

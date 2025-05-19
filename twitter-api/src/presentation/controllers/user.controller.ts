@@ -121,28 +121,110 @@ export class UserController {
   }
 
   @Get(':id/followers')
-  @ApiOperation({ summary: 'Get user followers' })
+  @UseGuards(AuthGuard)
+  @ApiResponse({ status: 401, description: 'Missing Authorization header' })
+  @ApiOperation({ summary: 'Get user followers with pagination' })
   @ApiParam({ name: 'id', description: 'User ID' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+  })
+  @ApiQuery({
+    name: 'pageSize',
+    required: false,
+    description: 'Number of items per page',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Followers found',
-    type: [FollowUserDto],
+    description: 'Follower users retrieved successfully',
+    schema: {
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            $ref: '#/components/schemas/FollowUserDto',
+          },
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            total: { type: 'number' },
+            page: { type: 'number' },
+            pageSize: { type: 'number' },
+            pageCount: { type: 'number' },
+            hasNextPage: { type: 'boolean' },
+            hasPrevPage: { type: 'boolean' },
+          },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async getUserFollowers(@Param('id') id: string): Promise<FollowUserDto[]> {
-    return this.getFollowersUseCase.execute(id);
+  async getUserFollowers(
+    @Param('id') id: string,
+    @Query('page') page?: number,
+    @Query('pageSize') pageSize?: number,
+  ): Promise<PaginatedResult<FollowUserDto>> {
+    const pagination = new PaginationParams(
+      page ? Number(page) : undefined,
+      pageSize ? Number(pageSize) : undefined,
+    );
+
+    return this.getFollowersUseCase.execute(id, pagination);
   }
 
   @Get(':id/following')
-  @ApiOperation({ summary: 'Get users that this user is following' })
+  @UseGuards(AuthGuard)
+  @ApiResponse({ status: 401, description: 'Missing Authorization header' })
+  @ApiOperation({ summary: 'Get user following with pagination' })
   @ApiParam({ name: 'id', description: 'User ID' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination',
+  })
+  @ApiQuery({
+    name: 'pageSize',
+    required: false,
+    description: 'Number of items per page',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Following users found',
-    type: [FollowUserDto],
+    description: 'Following users retrieved successfully',
+    schema: {
+      properties: {
+        data: {
+          type: 'array',
+          items: {
+            $ref: '#/components/schemas/FollowUserDto',
+          },
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            total: { type: 'number' },
+            page: { type: 'number' },
+            pageSize: { type: 'number' },
+            pageCount: { type: 'number' },
+            hasNextPage: { type: 'boolean' },
+            hasPrevPage: { type: 'boolean' },
+          },
+        },
+      },
+    },
   })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async getUserFollowing(@Param('id') id: string): Promise<FollowUserDto[]> {
-    return this.getFollowingUseCase.execute(id);
+  async getUserFollowing(
+    @Param('id') id: string,
+    @Query('page') page?: number,
+    @Query('pageSize') pageSize?: number,
+  ): Promise<PaginatedResult<FollowUserDto>> {
+    const pagination = new PaginationParams(
+      page ? Number(page) : undefined,
+      pageSize ? Number(pageSize) : undefined,
+    );
+
+    return this.getFollowingUseCase.execute(id, pagination);
   }
 }

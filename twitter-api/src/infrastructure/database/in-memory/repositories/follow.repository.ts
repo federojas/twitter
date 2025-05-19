@@ -58,8 +58,64 @@ export class FollowRepositoryImpl implements FollowRepository {
     return Promise.resolve(this.follows.get(id) || null);
   }
 
-  async findFollowers(userId: string): Promise<FollowAggregate[]> {
+  async findFollowers(
+    userId: string,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<FollowAggregate[]> {
     const followIds = this.followedToFollowIds.get(userId);
+    if (!followIds) {
+      return Promise.resolve([]);
+    }
+
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedFollowIds = Array.from(followIds).slice(
+      startIndex,
+      endIndex,
+    );
+
+    const follows: FollowAggregate[] = [];
+    for (const id of paginatedFollowIds) {
+      const follow = this.follows.get(id);
+      if (follow) {
+        follows.push(follow);
+      }
+    }
+
+    return Promise.resolve(follows);
+  }
+
+  async findFollowing(
+    userId: string,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<FollowAggregate[]> {
+    const followIds = this.followerToFollowIds.get(userId);
+    if (!followIds) {
+      return Promise.resolve([]);
+    }
+
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedFollowIds = Array.from(followIds).slice(
+      startIndex,
+      endIndex,
+    );
+
+    const follows: FollowAggregate[] = [];
+    for (const id of paginatedFollowIds) {
+      const follow = this.follows.get(id);
+      if (follow) {
+        follows.push(follow);
+      }
+    }
+
+    return Promise.resolve(follows);
+  }
+
+  async findAllFollowing(userId: string): Promise<FollowAggregate[]> {
+    const followIds = this.followerToFollowIds.get(userId);
     if (!followIds) {
       return Promise.resolve([]);
     }
@@ -75,8 +131,8 @@ export class FollowRepositoryImpl implements FollowRepository {
     return Promise.resolve(follows);
   }
 
-  async findFollowing(userId: string): Promise<FollowAggregate[]> {
-    const followIds = this.followerToFollowIds.get(userId);
+  async findAllFollowers(userId: string): Promise<FollowAggregate[]> {
+    const followIds = this.followedToFollowIds.get(userId);
     if (!followIds) {
       return Promise.resolve([]);
     }
