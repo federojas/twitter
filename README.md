@@ -5,6 +5,10 @@ permite a los usuarios publicar, seguir y ver el timeline de tweets.
 
 El proyecto esta containerizado usando Docker y Docker Compose.
 
+## Arquitectura
+
+Diagramas de arquitectura y documentación en la wiki del repositorio.
+
 ## Prerequisitos
 
 - Docker Engine (20.10.0+)
