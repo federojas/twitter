@@ -1,6 +1,12 @@
 import { TweetDto } from '../../application/dtos/tweet.dto';
 import { UserDto } from '../../application/dtos/user.dto';
 import { FollowDto, FollowUserDto } from '../../application/dtos/follow.dto';
+import {
+  isTweetDto,
+  isUserDto,
+  isFollowDto,
+  isFollowUserDto,
+} from '../../application/utils/dto-type-guards';
 
 type ResourceLinks = Record<string, string>;
 
@@ -143,7 +149,6 @@ export class LinkGenerator {
   } {
     const baseUrl = `${this.API_BASE_URL}${resourceUrl}`;
 
-    // Build query string from original params
     const originalQueryString = this.buildQueryString(originalQueryParams);
     const prefix = originalQueryString ? `${originalQueryString}&` : '?';
 
@@ -173,9 +178,6 @@ export class LinkGenerator {
     return links;
   }
 
-  /**
-   * Build query string from query params object
-   */
   private static buildQueryString(params: Record<string, string>): string {
     if (!params || Object.keys(params).length === 0) {
       return '';
@@ -189,89 +191,46 @@ export class LinkGenerator {
     return `?${queryParts.join('&')}`;
   }
 
-  static isTweetDto(obj: unknown): obj is TweetDto {
-    return Boolean(
-      obj &&
-        typeof obj === 'object' &&
-        'id' in obj &&
-        'userId' in obj &&
-        'content' in obj,
-    );
-  }
-
-  static isUserDto(obj: unknown): obj is UserDto {
-    return Boolean(
-      obj &&
-        typeof obj === 'object' &&
-        'id' in obj &&
-        'username' in obj &&
-        'displayName' in obj &&
-        !('followerId' in obj) &&
-        !('followedId' in obj),
-    );
-  }
-
-  static isFollowDto(obj: unknown): obj is FollowDto {
-    return Boolean(
-      obj &&
-        typeof obj === 'object' &&
-        'id' in obj &&
-        'followerId' in obj &&
-        'followedId' in obj,
-    );
-  }
-
-  static isFollowUserDto(obj: unknown): obj is FollowUserDto {
-    return Boolean(
-      obj &&
-        typeof obj === 'object' &&
-        'id' in obj &&
-        'username' in obj &&
-        'following' in obj,
-    );
-  }
-
   static enhanceResourceWithLinks(resource: unknown): unknown {
     if (!resource || typeof resource !== 'object') return resource;
 
-    if (this.isTweetDto(resource)) {
+    if (isTweetDto(resource)) {
       return this.enhanceTweetWithLinks(resource);
     }
 
-    if (this.isUserDto(resource)) {
+    if (isUserDto(resource)) {
       return this.enhanceUserWithLinks(resource);
     }
 
-    if (this.isFollowDto(resource)) {
+    if (isFollowDto(resource)) {
       return this.enhanceFollowWithLinks(resource);
     }
 
-    if (this.isFollowUserDto(resource)) {
+    if (isFollowUserDto(resource)) {
       return this.enhanceFollowUserWithLinks(resource);
     }
 
     return resource;
   }
 
-  // TODO: BORRAR ESTO UNA VEZ QUE PAGINE TODOS LOS RESULTADOS QUE SON ARRAYS
   static enhanceResourcesWithLinks(resources: unknown[]): unknown[] {
     if (resources.length === 0) return resources;
 
     const sample = resources[0];
 
-    if (this.isTweetDto(sample)) {
+    if (isTweetDto(sample)) {
       return this.enhanceTweetsWithLinks(resources as TweetDto[]);
     }
 
-    if (this.isUserDto(sample)) {
+    if (isUserDto(sample)) {
       return this.enhanceUsersWithLinks(resources as UserDto[]);
     }
 
-    if (this.isFollowDto(sample)) {
+    if (isFollowDto(sample)) {
       return this.enhanceFollowsWithLinks(resources as FollowDto[]);
     }
 
-    if (this.isFollowUserDto(sample)) {
+    if (isFollowUserDto(sample)) {
       return this.enhanceFollowUsersWithLinks(resources as FollowUserDto[]);
     }
 

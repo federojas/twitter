@@ -9,6 +9,11 @@ import { map } from 'rxjs/operators';
 import { Request } from 'express';
 import { LinkGenerator, ApiResource } from '../utils/link-generator';
 import { PaginatedResult } from '../../application/dtos/pagination.dto';
+import {
+  isTweetDto,
+  isUserDto,
+  isFollowDto,
+} from '../../application/utils/dto-type-guards';
 
 type ApiResponse =
   | ApiResource
@@ -90,11 +95,11 @@ export class HateoasInterceptor implements NestInterceptor {
     if (transformedData.length > 0) {
       const firstItem = transformedData[0];
 
-      if (LinkGenerator.isTweetDto(firstItem)) {
+      if (isTweetDto(firstItem)) {
         resourcePath = '/tweets';
-      } else if (LinkGenerator.isUserDto(firstItem)) {
+      } else if (isUserDto(firstItem)) {
         resourcePath = '/users';
-      } else if (LinkGenerator.isFollowDto(firstItem)) {
+      } else if (isFollowDto(firstItem)) {
         resourcePath = '/follows';
       }
     }
