@@ -1,11 +1,13 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
   Post,
+  Query,
   UseFilters,
   UseGuards,
 } from '@nestjs/common';
@@ -15,12 +17,17 @@ import {
   ApiResponse,
   ApiParam,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { CreateFollowDto, FollowDto } from '../../application/dtos/follow.dto';
 import { CreateFollowUseCase } from '../../application/use-cases/follow/create-follow.use-case';
 import { DomainExceptionFilter } from '../filters/domain-exception.filter';
-import { MethodNotAllowedException } from '../../domain/exceptions/domain.exceptions';
+import {
+  MethodNotAllowedException,
+  ValidationException,
+} from '../../domain/exceptions/domain.exceptions';
 import { GetFollowByIdUseCase } from '../../application/use-cases/follow/get-follow-by-id.use-case';
+import { UnfollowUseCase } from '../../application/use-cases/follow/unfollow.use-case';
 import { AuthGuard } from '../guards/auth.guard';
 import { CurrentUser } from '../decorators/current-user.decorator';
 
@@ -31,6 +38,7 @@ export class FollowController {
   constructor(
     private readonly createFollowUseCase: CreateFollowUseCase,
     private readonly getFollowByIdUseCase: GetFollowByIdUseCase,
+    private readonly unfollowUseCase: UnfollowUseCase,
   ) {}
 
   @Post()
@@ -51,6 +59,35 @@ export class FollowController {
     @Body() createFollowDto: CreateFollowDto,
   ): Promise<FollowDto> {
     return this.createFollowUseCase.execute(followerId, createFollowDto.userId);
+  }
+
+  @Delete()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Unfollow a user' })
+  @ApiQuery({
+    name: 'followed',
+    required: true,
+    description: 'ID of the user to unfollow',
+  })
+  @ApiResponse({
+    status: 204,
+    description: 'User unfollowed successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Missing followed query parameter' })
+  @ApiResponse({ status: 401, description: 'Missing authorization header' })
+  @ApiResponse({ status: 404, description: 'User not found or not following' })
+  async unfollowUser(
+    @CurrentUser() followerId: string,
+    @Query('followed') followedId: string,
+  ): Promise<void> {
+    if (!followedId) {
+      throw new ValidationException(
+        'Missing required followed query parameter. Use the followed query parameter to specify the user to unfollow by their User ID.',
+      );
+    }
+    await this.unfollowUseCase.execute(followerId, followedId);
   }
 
   @Get(':id')
