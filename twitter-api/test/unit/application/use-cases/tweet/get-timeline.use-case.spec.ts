@@ -12,34 +12,17 @@ import {
   PaginatedResult,
   PaginationParams,
 } from '../../../../../src/application/dtos/pagination.dto';
-import { LinkGenerator } from '../../../../../src/application/utils/link-generator';
 import { UserAggregate } from '../../../../../src/domain/aggregates/user/user.aggregate';
 
 // Mock the LinkGenerator
-jest.mock('../../../../../src/application/utils/link-generator', () => ({
+const mockEnhanceTweetsWithLinks = jest
+  .fn()
+  .mockImplementation((tweets: TweetDto[]) => tweets);
+const mockGeneratePaginationLinks = jest.fn();
+jest.mock('../../../../../src/presentation/utils/link-generator', () => ({
   LinkGenerator: {
-    enhanceTweetsWithLinks: jest.fn((tweets: TweetDto[]) =>
-      tweets.map((tweet) => ({
-        ...tweet,
-        links: {
-          self: `/tweets/${tweet.id}`,
-          user: `/users/${tweet.userId}`,
-        },
-      })),
-    ),
-    generatePaginationLinks: jest.fn((baseUrl, page, pageSize, pageCount) => ({
-      self: `${baseUrl}?page=${page}&pageSize=${pageSize}`,
-      first: `${baseUrl}?page=1&pageSize=${pageSize}`,
-      prev:
-        page > 1
-          ? `${baseUrl}?page=${page - 1}&pageSize=${pageSize}`
-          : undefined,
-      next:
-        page < pageCount
-          ? `${baseUrl}?page=${page + 1}&pageSize=${pageSize}`
-          : undefined,
-      last: `${baseUrl}?page=${pageCount}&pageSize=${pageSize}`,
-    })),
+    enhanceTweetsWithLinks: mockEnhanceTweetsWithLinks,
+    generatePaginationLinks: mockGeneratePaginationLinks,
   },
 }));
 
@@ -58,6 +41,7 @@ describe('GetTimelineUseCase', () => {
 
   const mockFollowService = {
     getUserFollowing: jest.fn(),
+    getAllUserFollowing: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -83,10 +67,12 @@ describe('GetTimelineUseCase', () => {
 
     // Reset mocks before each test
     jest.clearAllMocks();
+    mockEnhanceTweetsWithLinks.mockClear();
+    mockGeneratePaginationLinks.mockClear();
   });
 
   describe('execute', () => {
-    it('should return paginated timeline tweets with links', async () => {
+    it('should return paginated timeline tweets', async () => {
       // Arrange
       const userId = 'user-123';
       const pagination = new PaginationParams(1, 10);
@@ -108,7 +94,7 @@ describe('GetTimelineUseCase', () => {
           getFollowedId: () => followedUser2,
         },
       ] as unknown as FollowAggregate[];
-      mockFollowService.getUserFollowing.mockResolvedValue(mockFollows);
+      mockFollowService.getAllUserFollowing.mockResolvedValue(mockFollows);
 
       // Mock tweets
       const mockTweets = [
@@ -146,7 +132,9 @@ describe('GetTimelineUseCase', () => {
 
       // Assert
       expect(mockUserService.getUserById).toHaveBeenCalledWith(userId);
-      expect(mockFollowService.getUserFollowing).toHaveBeenCalledWith(userId);
+      expect(mockFollowService.getAllUserFollowing).toHaveBeenCalledWith(
+        userId,
+      );
 
       expect(mockTweetService.getTimelineTweets).toHaveBeenCalledWith(
         userId,
@@ -160,7 +148,8 @@ describe('GetTimelineUseCase', () => {
         [followedUser1, followedUser2],
       );
 
-      expect(LinkGenerator.enhanceTweetsWithLinks).toHaveBeenCalled();
+      // LinkGenerator is not used in the implementation
+      expect(mockEnhanceTweetsWithLinks).not.toHaveBeenCalled();
 
       // Verify the returned paginated result
       expect(result).toBeInstanceOf(PaginatedResult);
@@ -170,11 +159,9 @@ describe('GetTimelineUseCase', () => {
       expect(result.pagination.pageSize).toBe(10);
       expect(result.pagination.pageCount).toBe(1);
 
-      // Check that links are added to tweets
-      expect(result.data[0]).toHaveProperty('links');
-      expect(result.data[0].links.self).toBe('/tweets/tweet-1');
-      expect(result.data[1]).toHaveProperty('links');
-      expect(result.data[1].links.self).toBe('/tweets/tweet-2');
+      // Check basic tweet data
+      expect(result.data[0].id).toBe('tweet-1');
+      expect(result.data[1].id).toBe('tweet-2');
     });
 
     it('should return empty array when user has no timeline', async () => {
@@ -189,7 +176,7 @@ describe('GetTimelineUseCase', () => {
       mockUserService.getUserById.mockResolvedValue(mockUser);
 
       // No follows
-      mockFollowService.getUserFollowing.mockResolvedValue([]);
+      mockFollowService.getAllUserFollowing.mockResolvedValue([]);
 
       // No tweets
       mockTweetService.getTimelineTweets.mockResolvedValue([]);
@@ -200,7 +187,9 @@ describe('GetTimelineUseCase', () => {
 
       // Assert
       expect(mockUserService.getUserById).toHaveBeenCalledWith(userId);
-      expect(mockFollowService.getUserFollowing).toHaveBeenCalledWith(userId);
+      expect(mockFollowService.getAllUserFollowing).toHaveBeenCalledWith(
+        userId,
+      );
       expect(mockTweetService.getTimelineTweets).toHaveBeenCalledWith(
         userId,
         [],
@@ -228,7 +217,7 @@ describe('GetTimelineUseCase', () => {
       mockUserService.getUserById.mockResolvedValue(mockUser);
 
       // No follows
-      mockFollowService.getUserFollowing.mockResolvedValue([]);
+      mockFollowService.getAllUserFollowing.mockResolvedValue([]);
 
       // No tweets
       mockTweetService.getTimelineTweets.mockResolvedValue([]);

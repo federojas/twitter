@@ -4,19 +4,21 @@ import { FOLLOW_SERVICE } from '../../../../../src/domain/interfaces/service/ser
 import { FollowAggregate } from '../../../../../src/domain/aggregates/follow/follow.aggregate';
 import { FollowDto } from '../../../../../src/application/dtos/follow.dto';
 import { FollowNotFoundException } from '../../../../../src/domain/exceptions/domain.exceptions';
-import { LinkGenerator } from '../../../../../src/application/utils/link-generator';
 
 // Mock the LinkGenerator
-jest.mock('../../../../../src/application/utils/link-generator', () => ({
+const mockEnhanceFollowWithLinks = jest.fn();
+jest.mock('../../../../../src/presentation/utils/link-generator', () => ({
   LinkGenerator: {
-    enhanceFollowWithLinks: jest.fn((followDto: FollowDto) => ({
-      ...followDto,
-      _links: {
-        self: { href: `/follows/${followDto.id}` },
-        follower: { href: `/users/${followDto.followerId}` },
-        followed: { href: `/users/${followDto.followedId}` },
-      },
-    })),
+    enhanceFollowWithLinks: mockEnhanceFollowWithLinks.mockImplementation(
+      (followDto: FollowDto) => ({
+        ...followDto,
+        _links: {
+          self: { href: `/follows/${followDto.id}` },
+          follower: { href: `/users/${followDto.followerId}` },
+          followed: { href: `/users/${followDto.followedId}` },
+        },
+      }),
+    ),
   },
 }));
 
@@ -43,6 +45,7 @@ describe('GetFollowByIdUseCase', () => {
 
     // Reset mocks before each test
     jest.clearAllMocks();
+    mockEnhanceFollowWithLinks.mockClear();
   });
 
   describe('execute', () => {
@@ -74,14 +77,10 @@ describe('GetFollowByIdUseCase', () => {
         followerId: 'follower-456',
         followedId: 'followed-789',
         createdAt: expect.any(Date) as Date,
-        _links: {
-          self: { href: `/follows/${followId}` },
-          follower: { href: `/users/follower-456` },
-          followed: { href: `/users/followed-789` },
-        },
       });
 
-      expect(LinkGenerator.enhanceFollowWithLinks).toHaveBeenCalled();
+      // The LinkGenerator is not actually used in the implementation
+      expect(mockEnhanceFollowWithLinks).not.toHaveBeenCalled();
     });
 
     it('should throw FollowNotFoundException when follow is not found', async () => {

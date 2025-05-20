@@ -7,23 +7,16 @@ import {
 import { FollowAggregate } from '../../../../../src/domain/aggregates/follow/follow.aggregate';
 import { UserAggregate } from '../../../../../src/domain/aggregates/user/user.aggregate';
 import { FollowUserDto } from '../../../../../src/application/dtos/follow.dto';
-import { LinkGenerator } from '../../../../../src/application/utils/link-generator';
 import { UserNotFoundException } from '../../../../../src/domain/exceptions/domain.exceptions';
 
 // Mock the LinkGenerator
-jest.mock('../../../../../src/application/utils/link-generator', () => ({
+const mockEnhanceFollowUsersWithLinks = jest.fn();
+jest.mock('../../../../../src/presentation/utils/link-generator', () => ({
   LinkGenerator: {
-    enhanceFollowUsersWithLinks: jest.fn((users: FollowUserDto[]) =>
-      users.map((user) => ({
-        ...user,
-        links: {
-          self: `/users/${user.id}`,
-          followers: `/users/${user.id}/followers`,
-          following: `/users/${user.id}/following`,
-          tweets: `/users/${user.id}/tweets`,
-        },
-      })),
-    ),
+    enhanceFollowUsersWithLinks:
+      mockEnhanceFollowUsersWithLinks.mockImplementation(
+        (users: FollowUserDto[]) => users,
+      ),
   },
 }));
 
@@ -34,6 +27,7 @@ describe('GetFollowersUseCase', () => {
   const mockFollowService = {
     getUserFollowers: jest.fn(),
     isFollowing: jest.fn(),
+    getTotalFollowers: jest.fn(),
   };
 
   const mockUserService = {
@@ -62,7 +56,7 @@ describe('GetFollowersUseCase', () => {
   });
 
   describe('execute', () => {
-    it('should return a list of followers with enhanced links', async () => {
+    it('should return a list of followers', async () => {
       // Arrange
       const userId = 'user-123';
       const followerId1 = 'follower-1';
@@ -106,13 +100,18 @@ describe('GetFollowersUseCase', () => {
         if (id1 === userId && id2 === followerId1) return Promise.resolve(true);
         return Promise.resolve(false);
       });
+      mockFollowService.getTotalFollowers.mockResolvedValue(2);
 
       // Act
       const result = await useCase.execute(userId);
 
       // Assert
       expect(mockUserService.getUserById).toHaveBeenCalledWith(userId);
-      expect(mockFollowService.getUserFollowers).toHaveBeenCalledWith(userId);
+      expect(mockFollowService.getUserFollowers).toHaveBeenCalledWith(
+        userId,
+        1,
+        10,
+      );
 
       // Should have checked each follower
       expect(mockUserService.getUserById).toHaveBeenCalledWith(followerId1);
@@ -128,24 +127,23 @@ describe('GetFollowersUseCase', () => {
         followerId2,
       );
 
-      expect(LinkGenerator.enhanceFollowUsersWithLinks).toHaveBeenCalled();
+      // LinkGenerator is not used in the implementation
+      expect(mockEnhanceFollowUsersWithLinks).not.toHaveBeenCalled();
 
       // Verify the returned follower list
-      expect(result.length).toBe(2);
+      expect(result.data.length).toBe(2);
 
       // Check first follower details
-      expect(result[0].id).toBe(followerId1);
-      expect(result[0].username).toBe('follower1');
-      expect(result[0].displayName).toBe('Follower One');
-      expect(result[0].following).toBe(true);
-      expect(result[0].links).toBeDefined();
+      expect(result.data[0].id).toBe(followerId1);
+      expect(result.data[0].username).toBe('follower1');
+      expect(result.data[0].displayName).toBe('Follower One');
+      expect(result.data[0].following).toBe(true);
 
       // Check second follower details
-      expect(result[1].id).toBe(followerId2);
-      expect(result[1].username).toBe('follower2');
-      expect(result[1].displayName).toBe('Follower Two');
-      expect(result[1].following).toBe(false);
-      expect(result[1].links).toBeDefined();
+      expect(result.data[1].id).toBe(followerId2);
+      expect(result.data[1].username).toBe('follower2');
+      expect(result.data[1].displayName).toBe('Follower Two');
+      expect(result.data[1].following).toBe(false);
     });
 
     it('should throw UserNotFoundException when user does not exist', async () => {
@@ -179,21 +177,21 @@ describe('GetFollowersUseCase', () => {
 
       mockUserService.getUserById.mockResolvedValue(mockUser);
       mockFollowService.getUserFollowers.mockResolvedValue([]);
+      mockFollowService.getTotalFollowers.mockResolvedValue(0);
 
       // Act
       const result = await useCase.execute(userId);
 
       // Assert
       expect(mockUserService.getUserById).toHaveBeenCalledWith(userId);
-      expect(mockFollowService.getUserFollowers).toHaveBeenCalledWith(userId);
-
-      // Should have enhanced an empty array
-      expect(LinkGenerator.enhanceFollowUsersWithLinks).toHaveBeenCalledWith(
-        [],
+      expect(mockFollowService.getUserFollowers).toHaveBeenCalledWith(
+        userId,
+        1,
+        10,
       );
 
       // Verify the returned follower list is empty
-      expect(result).toEqual([]);
+      expect(result.data.length).toBe(0);
     });
 
     it('should skip null followers', async () => {
@@ -229,13 +227,18 @@ describe('GetFollowersUseCase', () => {
 
       mockFollowService.getUserFollowers.mockResolvedValue(mockFollows);
       mockFollowService.isFollowing.mockResolvedValue(false);
+      mockFollowService.getTotalFollowers.mockResolvedValue(1);
 
       // Act
       const result = await useCase.execute(userId);
 
       // Assert
       expect(mockUserService.getUserById).toHaveBeenCalledWith(userId);
-      expect(mockFollowService.getUserFollowers).toHaveBeenCalledWith(userId);
+      expect(mockFollowService.getUserFollowers).toHaveBeenCalledWith(
+        userId,
+        1,
+        10,
+      );
 
       // Should have checked each follower
       expect(mockUserService.getUserById).toHaveBeenCalledWith(followerId);
@@ -244,8 +247,8 @@ describe('GetFollowersUseCase', () => {
       );
 
       // Only one valid follower should be returned
-      expect(result.length).toBe(1);
-      expect(result[0].id).toBe(followerId);
+      expect(result.data.length).toBe(1);
+      expect(result.data[0].id).toBe(followerId);
     });
   });
 });

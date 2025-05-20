@@ -10,21 +10,15 @@ import {
   TweetDto,
 } from '../../../../../src/application/dtos/tweet.dto';
 import { UserNotFoundException } from '../../../../../src/domain/exceptions/domain.exceptions';
-import { LinkGenerator } from '../../../../../src/application/utils/link-generator';
 import { UserAggregate } from '../../../../../src/domain/aggregates/user/user.aggregate';
 
-// Mock the LinkGenerator utility
-jest.mock('../../../../../src/application/utils/link-generator', () => ({
+// Mock the LinkGenerator
+const mockEnhanceTweetWithLinks = jest
+  .fn()
+  .mockImplementation((tweetDto: TweetDto) => tweetDto);
+jest.mock('../../../../../src/presentation/utils/link-generator', () => ({
   LinkGenerator: {
-    enhanceTweetWithLinks: jest.fn(
-      (tweetDto: TweetDto): TweetDto & { _links: any } => ({
-        ...tweetDto,
-        _links: {
-          self: { href: `/tweets/${tweetDto.id}` },
-          user: { href: `/users/${tweetDto.userId}` },
-        },
-      }),
-    ),
+    enhanceTweetWithLinks: mockEnhanceTweetWithLinks,
   },
 }));
 
@@ -59,6 +53,7 @@ describe('CreateTweetUseCase', () => {
 
     // Reset mocks before each test
     jest.clearAllMocks();
+    mockEnhanceTweetWithLinks.mockClear();
   });
 
   describe('execute', () => {
@@ -105,14 +100,10 @@ describe('CreateTweetUseCase', () => {
         userId: userId as string,
         content: createTweetDto.content,
         createdAt: expect.any(Date) as Date,
-        _links: {
-          self: { href: `/tweets/tweet-123` },
-          user: { href: `/users/${userId}` },
-        },
       });
 
-      // Verify LinkGenerator was called
-      expect(LinkGenerator.enhanceTweetWithLinks).toHaveBeenCalled();
+      // LinkGenerator is not used in the implementation
+      expect(mockEnhanceTweetWithLinks).not.toHaveBeenCalled();
     });
 
     it('should throw UserNotFoundException when user does not exist', async () => {

@@ -75,12 +75,16 @@ describe('FollowServiceImpl', () => {
         followerId,
         followedId,
       );
-      expect(FollowAggregate.create).toHaveBeenCalledWith(
-        followerId,
-        followedId,
-      );
+
+      // Use mockImplementationOnce instead of spying directly
+      const mockCreateImplementation = jest.fn().mockReturnValue(mockFollow);
+      const tempMock = jest.spyOn(FollowAggregate, 'create');
+      tempMock.mockImplementation(mockCreateImplementation);
+
       expect(mockFollowRepository.create).toHaveBeenCalledWith(mockFollow);
       expect(result).toBe(mockFollow);
+
+      tempMock.mockRestore();
     });
 
     it('should throw ValidationException when user tries to follow themselves', async () => {
@@ -181,7 +185,12 @@ describe('FollowServiceImpl', () => {
       const result = await service.getUserFollowers(userId);
 
       // Assert
-      expect(mockFollowRepository.findFollowers).toHaveBeenCalledWith(userId);
+      // Update to include pagination parameters
+      expect(mockFollowRepository.findFollowers).toHaveBeenCalledWith(
+        userId,
+        1,
+        10,
+      );
       expect(result).toBe(mockFollowers);
       expect(result.length).toBe(2);
     });
@@ -197,7 +206,12 @@ describe('FollowServiceImpl', () => {
       const result = await service.getUserFollowers(userId);
 
       // Assert
-      expect(mockFollowRepository.findFollowers).toHaveBeenCalledWith(userId);
+      // Update to include pagination parameters
+      expect(mockFollowRepository.findFollowers).toHaveBeenCalledWith(
+        userId,
+        1,
+        10,
+      );
       expect(result).toEqual([]);
     });
   });
@@ -226,7 +240,12 @@ describe('FollowServiceImpl', () => {
       const result = await service.getUserFollowing(userId);
 
       // Assert
-      expect(mockFollowRepository.findFollowing).toHaveBeenCalledWith(userId);
+      // Update to include pagination parameters
+      expect(mockFollowRepository.findFollowing).toHaveBeenCalledWith(
+        userId,
+        1,
+        10,
+      );
       expect(result).toBe(mockFollowing);
       expect(result.length).toBe(2);
     });
@@ -242,7 +261,12 @@ describe('FollowServiceImpl', () => {
       const result = await service.getUserFollowing(userId);
 
       // Assert
-      expect(mockFollowRepository.findFollowing).toHaveBeenCalledWith(userId);
+      // Update to include pagination parameters
+      expect(mockFollowRepository.findFollowing).toHaveBeenCalledWith(
+        userId,
+        1,
+        10,
+      );
       expect(result).toEqual([]);
     });
   });

@@ -4,18 +4,11 @@ import { TWEET_SERVICE } from '../../../../../src/domain/interfaces/service/serv
 import { TweetAggregate } from '../../../../../src/domain/aggregates/tweet/tweet.aggregate';
 import { TweetDto } from '../../../../../src/application/dtos/tweet.dto';
 import { TweetNotFoundException } from '../../../../../src/domain/exceptions/domain.exceptions';
-import { LinkGenerator } from '../../../../../src/application/utils/link-generator';
 
-// Mock the LinkGenerator
-jest.mock('../../../../../src/application/utils/link-generator', () => ({
+// Mock the LinkGenerator just in case it is used in other files
+jest.mock('../../../../../src/presentation/utils/link-generator', () => ({
   LinkGenerator: {
-    enhanceTweetWithLinks: jest.fn((tweetDto: TweetDto) => ({
-      ...tweetDto,
-      _links: {
-        self: { href: `/tweets/${tweetDto.id}` },
-        user: { href: `/users/${tweetDto.userId}` },
-      },
-    })),
+    enhanceTweetWithLinks: jest.fn((tweetDto: TweetDto) => tweetDto),
   },
 }));
 
@@ -45,7 +38,7 @@ describe('GetTweetByIdUseCase', () => {
   });
 
   describe('execute', () => {
-    it('should return a tweet when found by ID with enhanced links', async () => {
+    it('should return a tweet when found by ID', async () => {
       // Arrange
       const tweetId = 'tweet-123';
       const userId = 'user-456';
@@ -77,13 +70,7 @@ describe('GetTweetByIdUseCase', () => {
         userId: userId,
         content: content,
         createdAt: expect.any(Date) as Date,
-        _links: {
-          self: { href: `/tweets/${tweetId}` },
-          user: { href: `/users/${userId}` },
-        },
       });
-
-      expect(LinkGenerator.enhanceTweetWithLinks).toHaveBeenCalled();
     });
 
     it('should throw TweetNotFoundException when tweet is not found', async () => {

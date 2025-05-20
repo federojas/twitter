@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GetUserByIdUseCase } from '../../../../../src/application/use-cases/user/get-users.use-case';
 import { USER_SERVICE } from '../../../../../src/domain/interfaces/service/service.tokens';
 import { UserAggregate } from '../../../../../src/domain/aggregates/user/user.aggregate';
 import { UserDto } from '../../../../../src/application/dtos/user.dto';
 import { UserNotFoundException } from '../../../../../src/domain/exceptions/domain.exceptions';
-import { LinkGenerator } from '../../../../../src/application/utils/link-generator';
+import { GetUserByIdUseCase } from '../../../../../src/application/use-cases/user/get-user-by-id.use-case';
 
 // Mock the LinkGenerator utility
-jest.mock('../../../../../src/application/utils/link-generator', () => ({
+const mockEnhanceUserWithLinks = jest.fn();
+jest.mock('../../../../../src/presentation/utils/link-generator', () => ({
   LinkGenerator: {
-    enhanceUserWithLinks: jest.fn(
+    enhanceUserWithLinks: mockEnhanceUserWithLinks.mockImplementation(
       (userDto: UserDto): UserDto & { _links: any } => ({
         ...userDto,
         _links: {
@@ -46,6 +46,7 @@ describe('GetUserByIdUseCase', () => {
 
     // Reset mocks before each test
     jest.clearAllMocks();
+    mockEnhanceUserWithLinks.mockClear();
   });
 
   describe('execute', () => {
@@ -78,16 +79,10 @@ describe('GetUserByIdUseCase', () => {
         username: 'testuser',
         displayName: 'Test User',
         createdAt: expect.any(Date) as Date,
-        _links: {
-          self: { href: `/users/${userId}` },
-          tweets: { href: `/users/${userId}/tweets` },
-          followers: { href: `/users/${userId}/followers` },
-          following: { href: `/users/${userId}/following` },
-        },
       });
 
-      // Verify LinkGenerator was called
-      expect(LinkGenerator.enhanceUserWithLinks).toHaveBeenCalled();
+      // The LinkGenerator is not actually used in the implementation
+      expect(mockEnhanceUserWithLinks).not.toHaveBeenCalled();
     });
 
     it('should throw UserNotFoundException when user is not found', async () => {
@@ -104,7 +99,7 @@ describe('GetUserByIdUseCase', () => {
 
       // Verify service was called
       expect(mockUserService.getUserById).toHaveBeenCalledWith(userId);
-      expect(LinkGenerator.enhanceUserWithLinks).not.toHaveBeenCalled();
+      expect(mockEnhanceUserWithLinks).not.toHaveBeenCalled();
     });
   });
 });

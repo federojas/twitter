@@ -7,23 +7,16 @@ import {
 import { FollowAggregate } from '../../../../../src/domain/aggregates/follow/follow.aggregate';
 import { UserAggregate } from '../../../../../src/domain/aggregates/user/user.aggregate';
 import { FollowUserDto } from '../../../../../src/application/dtos/follow.dto';
-import { LinkGenerator } from '../../../../../src/application/utils/link-generator';
 import { UserNotFoundException } from '../../../../../src/domain/exceptions/domain.exceptions';
 
 // Mock the LinkGenerator
-jest.mock('../../../../../src/application/utils/link-generator', () => ({
+const mockEnhanceFollowUsersWithLinks = jest.fn();
+jest.mock('../../../../../src/presentation/utils/link-generator', () => ({
   LinkGenerator: {
-    enhanceFollowUsersWithLinks: jest.fn((users: FollowUserDto[]) =>
-      users.map((user) => ({
-        ...user,
-        links: {
-          self: `/users/${user.id}`,
-          followers: `/users/${user.id}/followers`,
-          following: `/users/${user.id}/following`,
-          tweets: `/users/${user.id}/tweets`,
-        },
-      })),
-    ),
+    enhanceFollowUsersWithLinks:
+      mockEnhanceFollowUsersWithLinks.mockImplementation(
+        (users: FollowUserDto[]) => users,
+      ),
   },
 }));
 
@@ -33,6 +26,7 @@ describe('GetFollowingUseCase', () => {
   // Mock services
   const mockFollowService = {
     getUserFollowing: jest.fn(),
+    getTotalFollowing: jest.fn(),
   };
 
   const mockUserService = {
@@ -61,7 +55,7 @@ describe('GetFollowingUseCase', () => {
   });
 
   describe('execute', () => {
-    it('should return a list of followed users with enhanced links', async () => {
+    it('should return a list of followed users', async () => {
       // Arrange
       const userId = 'user-123';
       const followedId1 = 'followed-1';
@@ -100,34 +94,37 @@ describe('GetFollowingUseCase', () => {
       });
 
       mockFollowService.getUserFollowing.mockResolvedValue(mockFollows);
+      mockFollowService.getTotalFollowing.mockResolvedValue(2);
 
       // Act
       const result = await useCase.execute(userId);
 
       // Assert
       expect(mockUserService.getUserById).toHaveBeenCalledWith(userId);
-      expect(mockFollowService.getUserFollowing).toHaveBeenCalledWith(userId);
+      expect(mockFollowService.getUserFollowing).toHaveBeenCalledWith(
+        userId,
+        1,
+        10,
+      );
 
       // Should have checked each followed user
       expect(mockUserService.getUserById).toHaveBeenCalledWith(followedId1);
       expect(mockUserService.getUserById).toHaveBeenCalledWith(followedId2);
 
       // Verify the returned following list
-      expect(result.length).toBe(2);
+      expect(result.data.length).toBe(2);
 
       // Check first followed user details
-      expect(result[0].id).toBe(followedId1);
-      expect(result[0].username).toBe('followed1');
-      expect(result[0].displayName).toBe('Followed One');
-      expect(result[0].following).toBe(true);
-      expect(result[0].links).toBeDefined();
+      expect(result.data[0].id).toBe(followedId1);
+      expect(result.data[0].username).toBe('followed1');
+      expect(result.data[0].displayName).toBe('Followed One');
+      expect(result.data[0].following).toBe(true);
 
       // Check second followed user details
-      expect(result[1].id).toBe(followedId2);
-      expect(result[1].username).toBe('followed2');
-      expect(result[1].displayName).toBe('Followed Two');
-      expect(result[1].following).toBe(true);
-      expect(result[1].links).toBeDefined();
+      expect(result.data[1].id).toBe(followedId2);
+      expect(result.data[1].username).toBe('followed2');
+      expect(result.data[1].displayName).toBe('Followed Two');
+      expect(result.data[1].following).toBe(true);
     });
 
     it('should throw UserNotFoundException when user does not exist', async () => {
@@ -161,16 +158,21 @@ describe('GetFollowingUseCase', () => {
 
       mockUserService.getUserById.mockResolvedValue(mockUser);
       mockFollowService.getUserFollowing.mockResolvedValue([]);
+      mockFollowService.getTotalFollowing.mockResolvedValue(0);
 
       // Act
       const result = await useCase.execute(userId);
 
       // Assert
       expect(mockUserService.getUserById).toHaveBeenCalledWith(userId);
-      expect(mockFollowService.getUserFollowing).toHaveBeenCalledWith(userId);
+      expect(mockFollowService.getUserFollowing).toHaveBeenCalledWith(
+        userId,
+        1,
+        10,
+      );
 
       // Verify the returned following list is empty
-      expect(result).toEqual([]);
+      expect(result.data.length).toBe(0);
     });
 
     it('should skip null followed users', async () => {
@@ -205,13 +207,18 @@ describe('GetFollowingUseCase', () => {
       });
 
       mockFollowService.getUserFollowing.mockResolvedValue(mockFollows);
+      mockFollowService.getTotalFollowing.mockResolvedValue(1);
 
       // Act
       const result = await useCase.execute(userId);
 
       // Assert
       expect(mockUserService.getUserById).toHaveBeenCalledWith(userId);
-      expect(mockFollowService.getUserFollowing).toHaveBeenCalledWith(userId);
+      expect(mockFollowService.getUserFollowing).toHaveBeenCalledWith(
+        userId,
+        1,
+        10,
+      );
 
       // Should have checked each followed user
       expect(mockUserService.getUserById).toHaveBeenCalledWith(followedId);
@@ -220,8 +227,8 @@ describe('GetFollowingUseCase', () => {
       );
 
       // Only one valid followed user should be returned
-      expect(result.length).toBe(1);
-      expect(result[0].id).toBe(followedId);
+      expect(result.data.length).toBe(1);
+      expect(result.data[0].id).toBe(followedId);
     });
   });
 });
