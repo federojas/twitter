@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UserAggregate } from '../../../domain/aggregates/user/user.aggregate';
 import { CreateUserDto, UserDto } from '../../dtos/user.dto';
-import { LinkGenerator } from 'src/application/utils/link-generator';
 import { UserService } from 'src/domain/interfaces/service/user-service.interface';
 import { USER_SERVICE } from 'src/domain/interfaces/service/service.tokens';
 import { ConflictException } from 'src/domain/exceptions/domain.exceptions';
@@ -14,13 +13,13 @@ export class CreateUserUseCase {
   ) {}
 
   async execute(createUserDto: CreateUserDto): Promise<UserDto> {
-    const isUsernameAvailable = await this.userService.isUsernameAvailable(
+    const isAvailable = await this.userService.isUsernameAvailable(
       createUserDto.username,
     );
 
-    if (!isUsernameAvailable) {
+    if (!isAvailable) {
       throw new ConflictException(
-        `User with username ${createUserDto.username} already exists`,
+        `Username ${createUserDto.username} is already taken`,
       );
     }
 
@@ -31,6 +30,6 @@ export class CreateUserUseCase {
 
     await this.userService.createUser(userAggregate);
 
-    return LinkGenerator.enhanceUserWithLinks(userAggregate.toDTO() as UserDto);
+    return userAggregate.toDTO() as UserDto;
   }
 }

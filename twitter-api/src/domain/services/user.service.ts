@@ -40,6 +40,25 @@ export class UserServiceImpl implements UserService {
     return user;
   }
 
+  async getUsers(
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<UserAggregate[]> {
+    const users = await this.userRepository.findAll();
+
+    const total = users.length;
+    const startIndex = (page - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, total);
+
+    return users.slice(startIndex, endIndex);
+  }
+
+  async getTotalUsers(): Promise<number> {
+    const users = await this.userRepository.findAll();
+
+    return users.length;
+  }
+
   async getUserByUsername(username: string): Promise<UserAggregate | null> {
     const user = await this.userRepository.findByUsername(username);
 

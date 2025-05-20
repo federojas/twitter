@@ -10,9 +10,21 @@ export interface FollowRepository {
     followedId: string,
   ): Promise<FollowAggregate | null>;
 
-  findFollowers(userId: string): Promise<FollowAggregate[]>;
+  findFollowers(
+    userId: string,
+    page: number,
+    pageSize: number,
+  ): Promise<FollowAggregate[]>;
 
-  findFollowing(userId: string): Promise<FollowAggregate[]>;
+  findFollowing(
+    userId: string,
+    page: number,
+    pageSize: number,
+  ): Promise<FollowAggregate[]>;
+
+  findAllFollowing(userId: string): Promise<FollowAggregate[]>;
+
+  findAllFollowers(userId: string): Promise<FollowAggregate[]>;
 
   isFollowing(followerId: string, followedId: string): Promise<boolean>;
 

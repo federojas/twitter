@@ -50,12 +50,24 @@ export class FollowServiceImpl implements FollowService {
     return follow;
   }
 
-  async getUserFollowers(userId: string): Promise<FollowAggregate[]> {
-    return this.followRepository.findFollowers(userId);
+  async getUserFollowers(
+    userId: string,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<FollowAggregate[]> {
+    return this.followRepository.findFollowers(userId, page, pageSize);
   }
 
-  async getUserFollowing(userId: string): Promise<FollowAggregate[]> {
-    return this.followRepository.findFollowing(userId);
+  async getUserFollowing(
+    userId: string,
+    page: number = 1,
+    pageSize: number = 10,
+  ): Promise<FollowAggregate[]> {
+    return this.followRepository.findFollowing(userId, page, pageSize);
+  }
+
+  async getAllUserFollowing(userId: string): Promise<FollowAggregate[]> {
+    return this.followRepository.findAllFollowing(userId);
   }
 
   async isFollowing(followerId: string, followedId: string): Promise<boolean> {
@@ -75,5 +87,17 @@ export class FollowServiceImpl implements FollowService {
     await this.followRepository.delete(follow.getId());
 
     return true;
+  }
+
+  async getTotalFollowing(userId: string): Promise<number> {
+    const follows = await this.followRepository.findAllFollowing(userId);
+
+    return follows.length;
+  }
+
+  async getTotalFollowers(userId: string): Promise<number> {
+    const follows = await this.followRepository.findAllFollowers(userId);
+
+    return follows.length;
   }
 }

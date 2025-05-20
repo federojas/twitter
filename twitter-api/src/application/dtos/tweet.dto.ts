@@ -46,17 +46,4 @@ export class TweetDto {
     example: '2023-06-01T12:00:00.000Z',
   })
   createdAt: string;
-
-  @ApiProperty({
-    description: 'HATEOAS links for the tweet',
-    example: {
-      self: '/tweets/123e4567-e89b-12d3-a456-426614174000',
-      user: '/users/123e4567-e89b-12d3-a456-426614174000',
-    },
-  })
-  // HATEOAS
-  links: {
-    self: string;
-    user: string;
-  };
 }

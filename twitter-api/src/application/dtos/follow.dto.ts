@@ -41,21 +41,6 @@ export class FollowDto {
     example: '2023-06-01T12:00:00.000Z',
   })
   createdAt: string;
-
-  @ApiProperty({
-    description: 'HATEOAS links for the follow relationship',
-    example: {
-      self: '/follows/123e4567-e89b-12d3-a456-426614174000',
-      follower: '/users/123e4567-e89b-12d3-a456-426614174000',
-      followed: '/users/123e4567-e89b-12d3-a456-426614174000',
-    },
-  })
-  // HATEOAS
-  links: {
-    self: string;
-    follower: string;
-    followed: string;
-  };
 }
 
 /**
@@ -85,13 +70,4 @@ export class FollowUserDto {
     example: true,
   })
   following: boolean;
-
-  @ApiProperty({
-    description: 'HATEOAS links for the user',
-    example: { self: '/users/123e4567-e89b-12d3-a456-426614174000' },
-  })
-  // HATEOAS
-  links: {
-    self: string;
-  };
 }

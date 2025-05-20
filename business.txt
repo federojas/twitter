@@ -1,6 +1,6 @@
-- No se requiere autenticación ni autorización de usuarios.
-- El identificador del usuario se provee en cada request.
+- No se requiere autenticación ni autorización de usuarios (con solo pasar el ID por header Authorization basta).
 - No se require ningun tipo de verificación al crear los usuarios.
 - Los tweets no pueden editarse ni borrarse (solo crearse y leerse).
 - Los follows no necesitan validación del otro usuario (unilateral).
+- La timeline debe mostrar los tweets propios, además de los de los usarios seguidos.
 

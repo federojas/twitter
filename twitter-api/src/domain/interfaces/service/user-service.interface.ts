@@ -8,4 +8,8 @@ export interface UserService {
   getUserByUsername(username: string): Promise<UserAggregate | null>;
 
   isUsernameAvailable(username: string): Promise<boolean>;
+
+  getUsers(page: number, pageSize: number): Promise<UserAggregate[]>;
+
+  getTotalUsers(): Promise<number>;
 }

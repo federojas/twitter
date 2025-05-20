@@ -1,5 +1,3 @@
-import { LinkGenerator } from '../utils/link-generator';
-
 /**
  * Data Transfer Object para respuestas paginadas
  */
@@ -38,20 +36,8 @@ export class PaginatedResult<T> {
     hasNextPage: boolean;
     hasPrevPage: boolean;
   };
-  links: {
-    self: string;
-    first: string;
-    prev?: string;
-    next?: string;
-    last: string;
-  };
 
-  constructor(
-    data: T[],
-    total: number,
-    pagination: PaginationParams,
-    baseUrl: string,
-  ) {
+  constructor(data: T[], total: number, pagination: PaginationParams) {
     const { page, pageSize } = pagination;
     const pageCount = Math.ceil(total / pageSize);
 
@@ -64,12 +50,5 @@ export class PaginatedResult<T> {
       hasNextPage: page < pageCount,
       hasPrevPage: page > PaginationParams.FIRST_PAGE,
     };
-
-    this.links = LinkGenerator.generatePaginationLinks(
-      baseUrl,
-      page,
-      pageSize,
-      pageCount,
-    );
   }
 }

@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { TweetDto } from '../../dtos/tweet.dto';
-import { LinkGenerator } from '../../utils/link-generator';
 import { TweetService } from 'src/domain/interfaces/service/tweet-service.interface';
 import { TWEET_SERVICE } from 'src/domain/interfaces/service/service.tokens';
 import { TweetNotFoundException } from '../../../domain/exceptions/domain.exceptions';
@@ -20,6 +19,6 @@ export class GetTweetByIdUseCase {
     }
 
     const tweetDto = tweet.toDTO() as TweetDto;
-    return LinkGenerator.enhanceTweetWithLinks(tweetDto);
+    return tweetDto;
   }
 }

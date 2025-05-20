@@ -1,7 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { TweetAggregate } from '../../../domain/aggregates/tweet/tweet.aggregate';
 import { CreateTweetDto, TweetDto } from '../../dtos/tweet.dto';
-import { LinkGenerator } from '../../utils/link-generator';
 import { TweetService } from 'src/domain/interfaces/service/tweet-service.interface';
 import { UserService } from 'src/domain/interfaces/service/user-service.interface';
 import {
@@ -32,6 +31,6 @@ export class CreateTweetUseCase {
     await this.tweetService.createTweet(tweetAggregate);
 
     const tweetDto = tweetAggregate.toDTO() as TweetDto;
-    return LinkGenerator.enhanceTweetWithLinks(tweetDto);
+    return tweetDto;
   }
 }

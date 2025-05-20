@@ -23,7 +23,7 @@ import { CreateTweetUseCase } from '../../application/use-cases/tweet/create-twe
 import { GetTweetByIdUseCase } from '../../application/use-cases/tweet/get-tweets.use-case';
 import { GetTimelineUseCase } from '../../application/use-cases/tweet/get-timeline.use-case';
 import { DomainExceptionFilter } from '../filters/domain-exception.filter';
-import { UnimplementedException } from 'src/domain/exceptions/domain.exceptions';
+import { ValidationException } from 'src/domain/exceptions/domain.exceptions';
 import {
   PaginatedResult,
   PaginationParams,
@@ -122,8 +122,8 @@ export class TweetController {
     if (type === TweetController.TYPE_TIMELINE) {
       return this.getTimelineUseCase.execute(userId, pagination);
     } else {
-      throw new UnimplementedException(
-        'Querying over all tweets is not implemented. Use type=timeline query parameter to go over the tweets timeline.',
+      throw new ValidationException(
+        'Querying over all tweets is not supported. Use the type=timeline query parameter to go over the tweets timeline.',
       );
     }
   }

@@ -1,24 +1,28 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { UserDto } from '../../dtos/user.dto';
-import { LinkGenerator } from 'src/application/utils/link-generator';
+import { PaginatedResult, PaginationParams } from '../../dtos/pagination.dto';
 import { UserService } from 'src/domain/interfaces/service/user-service.interface';
 import { USER_SERVICE } from 'src/domain/interfaces/service/service.tokens';
-import { UserNotFoundException } from 'src/domain/exceptions/domain.exceptions';
 
 @Injectable()
-export class GetUserByIdUseCase {
+export class GetUsersUseCase {
   constructor(
     @Inject(USER_SERVICE)
     private readonly userService: UserService,
   ) {}
 
-  async execute(id: string): Promise<UserDto> {
-    const userAggregate = await this.userService.getUserById(id);
+  async execute(
+    pagination: PaginationParams = new PaginationParams(),
+  ): Promise<PaginatedResult<UserDto>> {
+    const users = await this.userService.getUsers(
+      pagination.page,
+      pagination.pageSize,
+    );
 
-    if (!userAggregate) {
-      throw new UserNotFoundException(id);
-    }
+    const total = await this.userService.getTotalUsers();
 
-    return LinkGenerator.enhanceUserWithLinks(userAggregate.toDTO() as UserDto);
+    const userDtos = users.map((user) => user.toDTO() as UserDto);
+
+    return new PaginatedResult<UserDto>(userDtos, total, pagination);
   }
 }

@@ -5,6 +5,10 @@ permite a los usuarios publicar, seguir y ver el timeline de tweets.
 
 El proyecto esta containerizado usando Docker y Docker Compose.
 
+## Arquitectura
+
+Diagramas de arquitectura y documentación en la wiki del repositorio.
+
 ## Prerequisitos
 
 - Docker Engine (20.10.0+)
@@ -26,7 +30,7 @@ También se puede interactuar con la API a través de una Swagger UI en **http:/
 
 ## Autenticación
 
-Para los endpoints que requieren autenticación, usar el header **Authorization** con el valor **Bearer <user-id>** donde el **<user-id>** es el ID del usuario que esta haciendo el request (simulando ser un JWT).
+Para los endpoints que requieren autenticación, usar el header `Authorization` con el valor `Bearer {user-id}` donde `{user-id}` es el ID del usuario que esta haciendo el request (simulando ser un JWT).
 
 ## Finalización
 

@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { FollowDto } from '../../dtos/follow.dto';
 import { FollowService } from 'src/domain/interfaces/service/follow-service.interface';
 import { UserService } from 'src/domain/interfaces/service/user-service.interface';
 import {
@@ -8,7 +7,7 @@ import {
 } from 'src/domain/interfaces/service/service.tokens';
 
 @Injectable()
-export class CreateFollowUseCase {
+export class UnfollowUseCase {
   constructor(
     @Inject(FOLLOW_SERVICE)
     private readonly followService: FollowService,
@@ -16,16 +15,10 @@ export class CreateFollowUseCase {
     private readonly userService: UserService,
   ) {}
 
-  async execute(followerId: string, followedId: string): Promise<FollowDto> {
+  async execute(followerId: string, followedId: string): Promise<boolean> {
     await this.userService.getUserById(followerId);
     await this.userService.getUserById(followedId);
 
-    const followAggregate = await this.followService.createFollow(
-      followerId,
-      followedId,
-    );
-
-    const followDTO = followAggregate.toDTO() as FollowDto;
-    return followDTO;
+    return this.followService.unfollow(followerId, followedId);
   }
 }

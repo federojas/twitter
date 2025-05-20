@@ -1,6 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { TweetDto } from '../../dtos/tweet.dto';
-import { LinkGenerator } from '../../utils/link-generator';
 import { PaginatedResult, PaginationParams } from '../../dtos/pagination.dto';
 import { UserService } from 'src/domain/interfaces/service/user-service.interface';
 import { TweetService } from 'src/domain/interfaces/service/tweet-service.interface';
@@ -28,7 +27,10 @@ export class GetTimelineUseCase {
   ): Promise<PaginatedResult<TweetDto>> {
     await this.userService.getUserById(userId);
 
-    const follows = await this.followService.getUserFollowing(userId);
+    // IMPORTANTE: Esto lo hago únicamente porque estoy usando una base de datos in-memory
+    // En una base de datos real, obtendría la timeline de tweets sin necesidad
+    // de obtener todos los seguidos a través de la consulta de la base de datos.
+    const follows = await this.followService.getAllUserFollowing(userId);
     const followedUserIds = follows.map((follow) => follow.getFollowedId());
 
     const allTweets = await this.tweetService.getTimelineTweets(
@@ -39,18 +41,12 @@ export class GetTimelineUseCase {
     );
 
     const allTweetDtos = allTweets.map((tweet) => tweet.toDTO() as TweetDto);
-    const enhancedTweets = LinkGenerator.enhanceTweetsWithLinks(allTweetDtos);
 
     const total = await this.tweetService.getTotalTimelineTweets(
       userId,
       followedUserIds,
     );
 
-    return new PaginatedResult<TweetDto>(
-      enhancedTweets,
-      total,
-      pagination,
-      '/tweets/timeline',
-    );
+    return new PaginatedResult<TweetDto>(allTweetDtos, total, pagination);
   }
 }
