@@ -61,9 +61,7 @@ export class UserController {
   }
 
   @Get()
-  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Get users with pagination' })
-  @ApiResponse({ status: 401, description: 'Missing Authorization header' })
   @ApiQuery({
     name: 'page',
     required: false,
@@ -121,8 +119,6 @@ export class UserController {
   }
 
   @Get(':id/followers')
-  @UseGuards(AuthGuard)
-  @ApiResponse({ status: 401, description: 'Missing Authorization header' })
   @ApiOperation({ summary: 'Get user followers with pagination' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiQuery({
@@ -175,8 +171,6 @@ export class UserController {
   }
 
   @Get(':id/following')
-  @UseGuards(AuthGuard)
-  @ApiResponse({ status: 401, description: 'Missing Authorization header' })
   @ApiOperation({ summary: 'Get user following with pagination' })
   @ApiParam({ name: 'id', description: 'User ID' })
   @ApiQuery({
