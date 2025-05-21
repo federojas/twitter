@@ -42,32 +42,3 @@ export class FollowDto {
   })
   createdAt: string;
 }
-
-/**
- * Data Transfer Object para respuesta de followed/following usuarios
- */
-export class FollowUserDto {
-  @ApiProperty({
-    description: 'Unique identifier for the user',
-    example: '123e4567-e89b-12d3-a456-426614174000',
-  })
-  id: string;
-
-  @ApiProperty({
-    description: 'Username of the user',
-    example: 'john_doe',
-  })
-  username: string;
-
-  @ApiProperty({
-    description: 'Display name of the user',
-    example: 'John Doe',
-  })
-  displayName: string;
-
-  @ApiProperty({
-    description: 'Whether the current user is following this user',
-    example: true,
-  })
-  following: boolean;
-}

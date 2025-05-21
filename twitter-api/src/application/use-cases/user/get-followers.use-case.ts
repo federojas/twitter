@@ -1,5 +1,4 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { FollowUserDto } from '../../dtos/follow.dto';
 import { FollowService } from 'src/domain/interfaces/service/follow-service.interface';
 import { UserService } from 'src/domain/interfaces/service/user-service.interface';
 import {
@@ -8,6 +7,7 @@ import {
 } from 'src/domain/interfaces/service/service.tokens';
 import { PaginatedResult } from 'src/application/dtos/pagination.dto';
 import { PaginationParams } from 'src/application/dtos/pagination.dto';
+import { UserDto } from 'src/application/dtos/user.dto';
 
 @Injectable()
 export class GetFollowersUseCase {
@@ -21,7 +21,7 @@ export class GetFollowersUseCase {
   async execute(
     userId: string,
     pagination: PaginationParams = new PaginationParams(),
-  ): Promise<PaginatedResult<FollowUserDto>> {
+  ): Promise<PaginatedResult<UserDto>> {
     await this.userService.getUserById(userId);
 
     const follows = await this.followService.getUserFollowers(
@@ -30,31 +30,26 @@ export class GetFollowersUseCase {
       pagination.pageSize,
     );
 
-    const followerDtos: FollowUserDto[] = [];
+    const followerDtos: UserDto[] = [];
 
     for (const follow of follows) {
       const followerId = follow.getFollowerId();
       const follower = await this.userService.getUserById(followerId);
 
       if (follower) {
-        const isFollowing = await this.followService.isFollowing(
-          userId,
-          followerId,
-        );
-
-        const followUserDto: FollowUserDto = {
+        const userDto: UserDto = {
           id: follower.getId(),
           username: follower.getUsername(),
           displayName: follower.getDisplayName(),
-          following: isFollowing,
+          createdAt: follower.getCreatedAt(),
         };
 
-        followerDtos.push(followUserDto);
+        followerDtos.push(userDto);
       }
     }
 
     const total = await this.followService.getTotalFollowers(userId);
 
-    return new PaginatedResult<FollowUserDto>(followerDtos, total, pagination);
+    return new PaginatedResult<UserDto>(followerDtos, total, pagination);
   }
 }

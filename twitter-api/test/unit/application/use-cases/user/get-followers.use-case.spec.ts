@@ -6,16 +6,15 @@ import {
 } from '../../../../../src/domain/interfaces/service/service.tokens';
 import { FollowAggregate } from '../../../../../src/domain/aggregates/follow/follow.aggregate';
 import { UserAggregate } from '../../../../../src/domain/aggregates/user/user.aggregate';
-import { FollowUserDto } from '../../../../../src/application/dtos/follow.dto';
 import { UserNotFoundException } from '../../../../../src/domain/exceptions/domain.exceptions';
-
+import { UserDto } from '../../../../../src/application/dtos/user.dto';
 // Mock the LinkGenerator
 const mockEnhanceFollowUsersWithLinks = jest.fn();
 jest.mock('../../../../../src/presentation/utils/link-generator', () => ({
   LinkGenerator: {
     enhanceFollowUsersWithLinks:
       mockEnhanceFollowUsersWithLinks.mockImplementation(
-        (users: FollowUserDto[]) => users,
+        (users: UserDto[]) => users,
       ),
   },
 }));
@@ -26,7 +25,6 @@ describe('GetFollowersUseCase', () => {
   // Mock services
   const mockFollowService = {
     getUserFollowers: jest.fn(),
-    isFollowing: jest.fn(),
     getTotalFollowers: jest.fn(),
   };
 
@@ -67,18 +65,21 @@ describe('GetFollowersUseCase', () => {
         getId: () => userId,
         getUsername: () => 'testuser',
         getDisplayName: () => 'Test User',
+        getCreatedAt: () => new Date('2023-01-01'),
       } as unknown as UserAggregate;
 
       const mockFollower1 = {
         getId: () => followerId1,
         getUsername: () => 'follower1',
         getDisplayName: () => 'Follower One',
+        getCreatedAt: () => new Date('2023-01-01'),
       } as unknown as UserAggregate;
 
       const mockFollower2 = {
         getId: () => followerId2,
         getUsername: () => 'follower2',
         getDisplayName: () => 'Follower Two',
+        getCreatedAt: () => new Date('2023-01-01'),
       } as unknown as UserAggregate;
 
       const mockFollows = [
@@ -95,11 +96,6 @@ describe('GetFollowersUseCase', () => {
       });
 
       mockFollowService.getUserFollowers.mockResolvedValue(mockFollows);
-      mockFollowService.isFollowing.mockImplementation((id1, id2) => {
-        // User is following follower1 but not follower2
-        if (id1 === userId && id2 === followerId1) return Promise.resolve(true);
-        return Promise.resolve(false);
-      });
       mockFollowService.getTotalFollowers.mockResolvedValue(2);
 
       // Act
@@ -117,16 +113,6 @@ describe('GetFollowersUseCase', () => {
       expect(mockUserService.getUserById).toHaveBeenCalledWith(followerId1);
       expect(mockUserService.getUserById).toHaveBeenCalledWith(followerId2);
 
-      // Should have checked if user is following each follower
-      expect(mockFollowService.isFollowing).toHaveBeenCalledWith(
-        userId,
-        followerId1,
-      );
-      expect(mockFollowService.isFollowing).toHaveBeenCalledWith(
-        userId,
-        followerId2,
-      );
-
       // LinkGenerator is not used in the implementation
       expect(mockEnhanceFollowUsersWithLinks).not.toHaveBeenCalled();
 
@@ -137,13 +123,13 @@ describe('GetFollowersUseCase', () => {
       expect(result.data[0].id).toBe(followerId1);
       expect(result.data[0].username).toBe('follower1');
       expect(result.data[0].displayName).toBe('Follower One');
-      expect(result.data[0].following).toBe(true);
+      expect(result.data[0].createdAt).toEqual(new Date('2023-01-01'));
 
       // Check second follower details
       expect(result.data[1].id).toBe(followerId2);
       expect(result.data[1].username).toBe('follower2');
       expect(result.data[1].displayName).toBe('Follower Two');
-      expect(result.data[1].following).toBe(false);
+      expect(result.data[1].createdAt).toEqual(new Date('2023-01-01'));
     });
 
     it('should throw UserNotFoundException when user does not exist', async () => {
@@ -205,12 +191,14 @@ describe('GetFollowersUseCase', () => {
         getId: () => userId,
         getUsername: () => 'testuser',
         getDisplayName: () => 'Test User',
+        getCreatedAt: () => new Date('2023-01-01'),
       } as unknown as UserAggregate;
 
       const mockFollower = {
         getId: () => followerId,
         getUsername: () => 'follower1',
         getDisplayName: () => 'Follower One',
+        getCreatedAt: () => new Date('2023-01-01'),
       } as unknown as UserAggregate;
 
       const mockFollows = [
@@ -226,7 +214,6 @@ describe('GetFollowersUseCase', () => {
       });
 
       mockFollowService.getUserFollowers.mockResolvedValue(mockFollows);
-      mockFollowService.isFollowing.mockResolvedValue(false);
       mockFollowService.getTotalFollowers.mockResolvedValue(1);
 
       // Act

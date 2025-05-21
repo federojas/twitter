@@ -8,7 +8,6 @@ import {
   Post,
   Query,
   UseFilters,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,7 +17,6 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { CreateUserDto, UserDto } from '../../application/dtos/user.dto';
-import { FollowUserDto } from '../../application/dtos/follow.dto';
 import {
   PaginatedResult,
   PaginationParams,
@@ -29,7 +27,6 @@ import { GetFollowersUseCase } from '../../application/use-cases/user/get-follow
 import { GetFollowingUseCase } from '../../application/use-cases/user/get-following.use-case';
 import { DomainExceptionFilter } from '../filters/domain-exception.filter';
 import { GetUserByIdUseCase } from '../../application/use-cases/user/get-user-by-id.use-case';
-import { AuthGuard } from '../guards/auth.guard';
 
 /**
  * User Controller
@@ -139,7 +136,7 @@ export class UserController {
         data: {
           type: 'array',
           items: {
-            $ref: '#/components/schemas/FollowUserDto',
+            $ref: '#/components/schemas/UserDto',
           },
         },
         pagination: {
@@ -161,7 +158,7 @@ export class UserController {
     @Param('id') id: string,
     @Query('page') page?: number,
     @Query('pageSize') pageSize?: number,
-  ): Promise<PaginatedResult<FollowUserDto>> {
+  ): Promise<PaginatedResult<UserDto>> {
     const pagination = new PaginationParams(
       page ? Number(page) : undefined,
       pageSize ? Number(pageSize) : undefined,
@@ -191,7 +188,7 @@ export class UserController {
         data: {
           type: 'array',
           items: {
-            $ref: '#/components/schemas/FollowUserDto',
+            $ref: '#/components/schemas/UserDto',
           },
         },
         pagination: {
@@ -213,7 +210,7 @@ export class UserController {
     @Param('id') id: string,
     @Query('page') page?: number,
     @Query('pageSize') pageSize?: number,
-  ): Promise<PaginatedResult<FollowUserDto>> {
+  ): Promise<PaginatedResult<UserDto>> {
     const pagination = new PaginationParams(
       page ? Number(page) : undefined,
       pageSize ? Number(pageSize) : undefined,

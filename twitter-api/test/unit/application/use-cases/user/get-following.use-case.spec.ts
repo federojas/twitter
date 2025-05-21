@@ -6,8 +6,8 @@ import {
 } from '../../../../../src/domain/interfaces/service/service.tokens';
 import { FollowAggregate } from '../../../../../src/domain/aggregates/follow/follow.aggregate';
 import { UserAggregate } from '../../../../../src/domain/aggregates/user/user.aggregate';
-import { FollowUserDto } from '../../../../../src/application/dtos/follow.dto';
 import { UserNotFoundException } from '../../../../../src/domain/exceptions/domain.exceptions';
+import { UserDto } from '../../../../../src/application/dtos/user.dto';
 
 // Mock the LinkGenerator
 const mockEnhanceFollowUsersWithLinks = jest.fn();
@@ -15,7 +15,7 @@ jest.mock('../../../../../src/presentation/utils/link-generator', () => ({
   LinkGenerator: {
     enhanceFollowUsersWithLinks:
       mockEnhanceFollowUsersWithLinks.mockImplementation(
-        (users: FollowUserDto[]) => users,
+        (users: UserDto[]) => users,
       ),
   },
 }));
@@ -66,18 +66,21 @@ describe('GetFollowingUseCase', () => {
         getId: () => userId,
         getUsername: () => 'testuser',
         getDisplayName: () => 'Test User',
+        getCreatedAt: () => new Date('2023-01-01'),
       } as unknown as UserAggregate;
 
       const mockFollowed1 = {
         getId: () => followedId1,
         getUsername: () => 'followed1',
         getDisplayName: () => 'Followed One',
+        getCreatedAt: () => new Date('2023-01-01'),
       } as unknown as UserAggregate;
 
       const mockFollowed2 = {
         getId: () => followedId2,
         getUsername: () => 'followed2',
         getDisplayName: () => 'Followed Two',
+        getCreatedAt: () => new Date('2023-01-01'),
       } as unknown as UserAggregate;
 
       const mockFollows = [
@@ -118,13 +121,13 @@ describe('GetFollowingUseCase', () => {
       expect(result.data[0].id).toBe(followedId1);
       expect(result.data[0].username).toBe('followed1');
       expect(result.data[0].displayName).toBe('Followed One');
-      expect(result.data[0].following).toBe(true);
+      expect(result.data[0].createdAt).toEqual(new Date('2023-01-01'));
 
       // Check second followed user details
       expect(result.data[1].id).toBe(followedId2);
       expect(result.data[1].username).toBe('followed2');
       expect(result.data[1].displayName).toBe('Followed Two');
-      expect(result.data[1].following).toBe(true);
+      expect(result.data[1].createdAt).toEqual(new Date('2023-01-01'));
     });
 
     it('should throw UserNotFoundException when user does not exist', async () => {
@@ -154,6 +157,7 @@ describe('GetFollowingUseCase', () => {
         getId: () => userId,
         getUsername: () => 'antisocialuser',
         getDisplayName: () => 'Antisocial User',
+        getCreatedAt: () => new Date('2023-01-01'),
       } as unknown as UserAggregate;
 
       mockUserService.getUserById.mockResolvedValue(mockUser);
@@ -186,12 +190,14 @@ describe('GetFollowingUseCase', () => {
         getId: () => userId,
         getUsername: () => 'testuser',
         getDisplayName: () => 'Test User',
+        getCreatedAt: () => new Date('2023-01-01'),
       } as unknown as UserAggregate;
 
       const mockFollowed = {
         getId: () => followedId,
         getUsername: () => 'followed1',
         getDisplayName: () => 'Followed One',
+        getCreatedAt: () => new Date('2023-01-01'),
       } as unknown as UserAggregate;
 
       const mockFollows = [

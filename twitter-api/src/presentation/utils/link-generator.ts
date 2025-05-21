@@ -1,16 +1,15 @@
 import { TweetDto } from '../../application/dtos/tweet.dto';
 import { UserDto } from '../../application/dtos/user.dto';
-import { FollowDto, FollowUserDto } from '../../application/dtos/follow.dto';
+import { FollowDto } from '../../application/dtos/follow.dto';
 import {
   isTweetDto,
   isUserDto,
   isFollowDto,
-  isFollowUserDto,
 } from '../../application/utils/dto-type-guards';
 
 type ResourceLinks = Record<string, string>;
 
-export type ApiResource = TweetDto | UserDto | FollowDto | FollowUserDto;
+export type ApiResource = TweetDto | UserDto | FollowDto;
 
 interface LinkableResource {
   id: string;
@@ -86,12 +85,6 @@ export class LinkGenerator {
     };
   }
 
-  private static getFollowUserLinks(followUser: FollowUserDto): ResourceLinks {
-    return {
-      self: this.userUrl(followUser.id),
-    };
-  }
-
   static enhanceTweetWithLinks(tweet: TweetDto): TweetDto {
     return this.enhanceWithLinks(tweet, (t) => this.getTweetLinks(t));
   }
@@ -102,12 +95,6 @@ export class LinkGenerator {
 
   static enhanceFollowWithLinks(follow: FollowDto): FollowDto {
     return this.enhanceWithLinks(follow, (f) => this.getFollowLinks(f));
-  }
-
-  static enhanceFollowUserWithLinks(followUser: FollowUserDto): FollowUserDto {
-    return this.enhanceWithLinks(followUser, (fu) =>
-      this.getFollowUserLinks(fu),
-    );
   }
 
   static enhanceTweetsWithLinks(tweets: TweetDto[]): TweetDto[] {
@@ -123,14 +110,6 @@ export class LinkGenerator {
   static enhanceFollowsWithLinks(follows: FollowDto[]): FollowDto[] {
     return this.enhanceCollectionWithLinks(follows, (f) =>
       this.getFollowLinks(f),
-    );
-  }
-
-  static enhanceFollowUsersWithLinks(
-    followUsers: FollowUserDto[],
-  ): FollowUserDto[] {
-    return this.enhanceCollectionWithLinks(followUsers, (fu) =>
-      this.getFollowUserLinks(fu),
     );
   }
 
@@ -206,10 +185,6 @@ export class LinkGenerator {
       return this.enhanceFollowWithLinks(resource);
     }
 
-    if (isFollowUserDto(resource)) {
-      return this.enhanceFollowUserWithLinks(resource);
-    }
-
     return resource;
   }
 
@@ -228,10 +203,6 @@ export class LinkGenerator {
 
     if (isFollowDto(sample)) {
       return this.enhanceFollowsWithLinks(resources as FollowDto[]);
-    }
-
-    if (isFollowUserDto(sample)) {
-      return this.enhanceFollowUsersWithLinks(resources as FollowUserDto[]);
     }
 
     return resources;

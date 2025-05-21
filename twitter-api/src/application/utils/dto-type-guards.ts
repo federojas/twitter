@@ -1,6 +1,6 @@
 import { TweetDto } from '../dtos/tweet.dto';
 import { UserDto } from '../dtos/user.dto';
-import { FollowDto, FollowUserDto } from '../dtos/follow.dto';
+import { FollowDto } from '../dtos/follow.dto';
 
 export function isTweetDto(obj: unknown): obj is TweetDto {
   return Boolean(
@@ -31,15 +31,5 @@ export function isFollowDto(obj: unknown): obj is FollowDto {
       'id' in obj &&
       'followerId' in obj &&
       'followedId' in obj,
-  );
-}
-
-export function isFollowUserDto(obj: unknown): obj is FollowUserDto {
-  return Boolean(
-    obj &&
-      typeof obj === 'object' &&
-      'id' in obj &&
-      'username' in obj &&
-      'following' in obj,
   );
 }
