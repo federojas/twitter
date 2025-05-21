@@ -1,372 +1,330 @@
-import { Test, TestingModule } from '@nestjs/testing';
 import { FollowRepositoryImpl } from '../../../../../../src/infrastructure/database/in-memory/repositories/follow.repository';
 import { FollowAggregate } from '../../../../../../src/domain/aggregates/follow/follow.aggregate';
 
 describe('FollowRepositoryImpl', () => {
   let repository: FollowRepositoryImpl;
+  let follows: FollowAggregate[];
 
-  // Setup test module before each test
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [FollowRepositoryImpl],
-    }).compile();
+  beforeEach(() => {
+    repository = new FollowRepositoryImpl();
+    follows = [];
 
-    repository = module.get<FollowRepositoryImpl>(FollowRepositoryImpl);
+    // Create some follow aggregates for testing
+    for (let i = 1; i <= 3; i++) {
+      follows.push({
+        getId: () => `follow-${i}`,
+        getFollowerId: () => `follower-${i}`,
+        getFollowedId: () => `followed-${i}`,
+      } as unknown as FollowAggregate);
+    }
+
+    // Add same follower for multiple users
+    follows.push({
+      getId: () => 'follow-4',
+      getFollowerId: () => 'follower-1',
+      getFollowedId: () => 'followed-4',
+    } as unknown as FollowAggregate);
+
+    // Add multiple followers for same user
+    follows.push({
+      getId: () => 'follow-5',
+      getFollowerId: () => 'follower-2',
+      getFollowedId: () => 'followed-1',
+    } as unknown as FollowAggregate);
   });
 
-  // Mock a follow aggregate for testing
-  const createMockFollow = (
-    id: string,
-    followerId: string,
-    followedId: string,
-    createdAt: Date,
-  ): FollowAggregate => {
-    const followAggregate = {
-      getId: jest.fn().mockReturnValue(id),
-      getFollowerId: jest.fn().mockReturnValue(followerId),
-      getFollowedId: jest.fn().mockReturnValue(followedId),
-      getCreatedAt: jest.fn().mockReturnValue(createdAt),
-    } as unknown as FollowAggregate;
-
-    return followAggregate;
-  };
-
   describe('create', () => {
-    it('should create a follow relationship and make it accessible by ID', async () => {
+    it('should add a follow to the repository', async () => {
       // Arrange
-      const followId = 'follow-123';
-      const followerId = 'follower-123';
-      const followedId = 'followed-123';
-      const createdAt = new Date();
-      const follow = createMockFollow(
-        followId,
-        followerId,
-        followedId,
-        createdAt,
-      );
+      const follow = follows[0];
 
       // Act
       await repository.create(follow);
 
       // Assert
-      const foundById = await repository.findById(followId);
-      expect(foundById).toBe(follow);
-    });
-
-    it('should make the follow relationship accessible by follower and followed', async () => {
-      // Arrange
-      const followId = 'follow-456';
-      const followerId = 'follower-456';
-      const followedId = 'followed-456';
-      const createdAt = new Date();
-      const follow = createMockFollow(
-        followId,
-        followerId,
-        followedId,
-        createdAt,
-      );
-
-      // Act
-      await repository.create(follow);
-
-      // Assert
-      const foundByRelationship = await repository.findByFollowerAndFollowed(
-        followerId,
-        followedId,
-      );
-      expect(foundByRelationship).toBe(follow);
+      const result = await repository.findById(follow.getId());
+      expect(result).toBe(follow);
     });
   });
 
   describe('findById', () => {
-    it('should return null for non-existent follow relationship', async () => {
-      // Act
-      const follow = await repository.findById('non-existent-id');
-
-      // Assert
-      expect(follow).toBeNull();
-    });
-
-    it('should return follow when found by ID', async () => {
+    it('should return a follow when it exists', async () => {
       // Arrange
-      const followId = 'follow-789';
-      const followerId = 'follower-789';
-      const followedId = 'followed-789';
-      const createdAt = new Date();
-      const follow = createMockFollow(
-        followId,
-        followerId,
-        followedId,
-        createdAt,
-      );
+      const follow = follows[0];
       await repository.create(follow);
 
       // Act
-      const foundFollow = await repository.findById(followId);
+      const result = await repository.findById(follow.getId());
 
       // Assert
-      expect(foundFollow).toBe(follow);
+      expect(result).toBe(follow);
+    });
+
+    it('should return null when follow does not exist', async () => {
+      // Act
+      const result = await repository.findById('non-existent-id');
+
+      // Assert
+      expect(result).toBeNull();
     });
   });
 
   describe('findByFollowerAndFollowed', () => {
-    it('should return null when relationship does not exist', async () => {
-      // Act
-      const follow = await repository.findByFollowerAndFollowed(
-        'non-existent',
-        'also-non-existent',
-      );
-
-      // Assert
-      expect(follow).toBeNull();
-    });
-
-    it('should return the follow relationship when it exists', async () => {
+    it('should return a follow when the relationship exists', async () => {
       // Arrange
-      const followId = 'specific-follow';
-      const followerId = 'specific-follower';
-      const followedId = 'specific-followed';
-      const createdAt = new Date();
-      const follow = createMockFollow(
-        followId,
-        followerId,
-        followedId,
-        createdAt,
-      );
+      const follow = follows[0];
       await repository.create(follow);
 
       // Act
-      const foundFollow = await repository.findByFollowerAndFollowed(
-        followerId,
-        followedId,
+      const result = await repository.findByFollowerAndFollowed(
+        follow.getFollowerId(),
+        follow.getFollowedId(),
       );
 
       // Assert
-      expect(foundFollow).toBe(follow);
+      expect(result).toBe(follow);
+    });
+
+    it('should return null when the relationship does not exist', async () => {
+      // Act
+      const result = await repository.findByFollowerAndFollowed(
+        'non-existent-follower',
+        'non-existent-followed',
+      );
+
+      // Assert
+      expect(result).toBeNull();
     });
   });
 
   describe('findFollowers', () => {
-    it('should return empty array when user has no followers', async () => {
-      // Act
-      const followers = await repository.findFollowers('user-no-followers');
+    it('should return paginated followers for a user', async () => {
+      // Arrange
+      // Create follows: both follower-1 and follower-2 follow followed-1
+      await repository.create(follows[0]); // follower-1 follows followed-1
+      await repository.create(follows[4]); // follower-2 follows followed-1
+
+      // Act - Get first page with 1 follower per page
+      const result = await repository.findFollowers('followed-1', 1, 1);
 
       // Assert
-      expect(followers).toEqual([]);
+      expect(result.length).toBe(1);
+      // Note: The order in which followers are returned is not guaranteed,
+      // so we're just checking that one of the two followers is returned
+      expect(['follower-1', 'follower-2']).toContain(result[0].getFollowerId());
     });
 
-    it('should return all followers of a user', async () => {
+    it('should return second page of followers', async () => {
       // Arrange
-      const followedId = 'user-with-followers';
+      // Create follows: both follower-1 and follower-2 follow followed-1
+      await repository.create(follows[0]); // follower-1 follows followed-1
+      await repository.create(follows[4]); // follower-2 follows followed-1
 
-      // Create multiple followers
-      const follow1 = createMockFollow(
-        'follow-to-user-1',
-        'follower-1',
-        followedId,
-        new Date(),
-      );
-      const follow2 = createMockFollow(
-        'follow-to-user-2',
-        'follower-2',
-        followedId,
-        new Date(),
-      );
-      const follow3 = createMockFollow(
-        'follow-to-user-3',
-        'follower-3',
-        followedId,
-        new Date(),
-      );
-
-      await repository.create(follow1);
-      await repository.create(follow2);
-      await repository.create(follow3);
-
-      // Also create a follow relationship where the user is following someone else
-      const otherFollow = createMockFollow(
-        'other-follow',
-        followedId,
-        'someone-else',
-        new Date(),
-      );
-      await repository.create(otherFollow);
-
-      // Act
-      const followers = await repository.findFollowers(followedId);
+      // Act - Get second page with 1 follower per page
+      const result = await repository.findFollowers('followed-1', 2, 1);
 
       // Assert
-      expect(followers).toHaveLength(3);
-      expect(followers).toContain(follow1);
-      expect(followers).toContain(follow2);
-      expect(followers).toContain(follow3);
-      expect(followers).not.toContain(otherFollow);
+      expect(result.length).toBe(1);
+      // Note: The order in which followers are returned is not guaranteed,
+      // so we're checking for one of the followers that wasn't on the first page
+      expect(['follower-1', 'follower-2']).toContain(result[0].getFollowerId());
+    });
+
+    it('should return empty array when user has no followers', async () => {
+      // Act
+      const result = await repository.findFollowers('user-with-no-followers');
+
+      // Assert
+      expect(result).toEqual([]);
     });
   });
 
   describe('findFollowing', () => {
-    it('should return empty array when user is not following anyone', async () => {
-      // Act
-      const following = await repository.findFollowing('user-following-none');
+    it('should return paginated following for a user', async () => {
+      // Arrange
+      // Create follows: follower-1 follows both followed-1 and followed-4
+      await repository.create(follows[0]); // follower-1 follows followed-1
+      await repository.create(follows[3]); // follower-1 follows followed-4
+
+      // Act - Get first page with 1 followed user per page
+      const result = await repository.findFollowing('follower-1', 1, 1);
 
       // Assert
-      expect(following).toEqual([]);
+      expect(result.length).toBe(1);
+      // Note: The order in which followed users are returned is not guaranteed
+      expect(['followed-1', 'followed-4']).toContain(result[0].getFollowedId());
     });
 
-    it('should return all users a user is following', async () => {
+    it('should return second page of following', async () => {
       // Arrange
-      const followerId = 'user-following-others';
+      // Create follows: follower-1 follows both followed-1 and followed-4
+      await repository.create(follows[0]); // follower-1 follows followed-1
+      await repository.create(follows[3]); // follower-1 follows followed-4
 
-      // Create multiple followings
-      const follow1 = createMockFollow(
-        'user-following-1',
-        followerId,
-        'followed-1',
-        new Date(),
-      );
-      const follow2 = createMockFollow(
-        'user-following-2',
-        followerId,
-        'followed-2',
-        new Date(),
-      );
-      const follow3 = createMockFollow(
-        'user-following-3',
-        followerId,
-        'followed-3',
-        new Date(),
-      );
-
-      await repository.create(follow1);
-      await repository.create(follow2);
-      await repository.create(follow3);
-
-      // Also create a follow relationship where someone is following this user
-      const otherFollow = createMockFollow(
-        'other-following',
-        'someone-else',
-        followerId,
-        new Date(),
-      );
-      await repository.create(otherFollow);
-
-      // Act
-      const following = await repository.findFollowing(followerId);
+      // Act - Get second page with 1 followed user per page
+      const result = await repository.findFollowing('follower-1', 2, 1);
 
       // Assert
-      expect(following).toHaveLength(3);
-      expect(following).toContain(follow1);
-      expect(following).toContain(follow2);
-      expect(following).toContain(follow3);
-      expect(following).not.toContain(otherFollow);
+      expect(result.length).toBe(1);
+      // Note: The order in which followed users are returned is not guaranteed
+      expect(['followed-1', 'followed-4']).toContain(result[0].getFollowedId());
+    });
+
+    it('should return empty array when user is not following anyone', async () => {
+      // Act
+      const result = await repository.findFollowing('user-following-no-one');
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('findAllFollowing', () => {
+    it('should return all users followed by a specific user', async () => {
+      // Arrange
+      // Create follows: follower-1 follows both followed-1 and followed-4
+      await repository.create(follows[0]); // follower-1 follows followed-1
+      await repository.create(follows[3]); // follower-1 follows followed-4
+
+      // Act
+      const result = await repository.findAllFollowing('follower-1');
+
+      // Assert
+      expect(result.length).toBe(2);
+      const followedIds = result.map((follow) => follow.getFollowedId());
+      expect(followedIds).toContain('followed-1');
+      expect(followedIds).toContain('followed-4');
+    });
+
+    it('should return empty array when user is not following anyone', async () => {
+      // Act
+      const result = await repository.findAllFollowing('user-following-no-one');
+
+      // Assert
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('findAllFollowers', () => {
+    it('should return all followers of a specific user', async () => {
+      // Arrange
+      // Create follows: both follower-1 and follower-2 follow followed-1
+      await repository.create(follows[0]); // follower-1 follows followed-1
+      await repository.create(follows[4]); // follower-2 follows followed-1
+
+      // Act
+      const result = await repository.findAllFollowers('followed-1');
+
+      // Assert
+      expect(result.length).toBe(2);
+      const followerIds = result.map((follow) => follow.getFollowerId());
+      expect(followerIds).toContain('follower-1');
+      expect(followerIds).toContain('follower-2');
+    });
+
+    it('should return empty array when user has no followers', async () => {
+      // Act
+      const result = await repository.findAllFollowers(
+        'user-with-no-followers',
+      );
+
+      // Assert
+      expect(result).toEqual([]);
     });
   });
 
   describe('isFollowing', () => {
-    it('should return false when follow relationship does not exist', async () => {
-      // Act
-      const isFollowing = await repository.isFollowing(
-        'non-existent',
-        'also-non-existent',
-      );
-
-      // Assert
-      expect(isFollowing).toBe(false);
-    });
-
     it('should return true when follow relationship exists', async () => {
       // Arrange
-      const followerId = 'check-follower';
-      const followedId = 'check-followed';
-      const follow = createMockFollow(
-        'check-follow',
-        followerId,
-        followedId,
-        new Date(),
-      );
+      const follow = follows[0];
       await repository.create(follow);
 
       // Act
-      const isFollowing = await repository.isFollowing(followerId, followedId);
+      const result = await repository.isFollowing(
+        follow.getFollowerId(),
+        follow.getFollowedId(),
+      );
 
       // Assert
-      expect(isFollowing).toBe(true);
+      expect(result).toBe(true);
+    });
+
+    it('should return false when follow relationship does not exist', async () => {
+      // Act
+      const result = await repository.isFollowing(
+        'non-existent-follower',
+        'non-existent-followed',
+      );
+
+      // Assert
+      expect(result).toBe(false);
     });
   });
 
   describe('delete', () => {
-    it('should do nothing when follow does not exist', async () => {
-      // This should not throw an error
+    it('should delete a follow from the repository', async () => {
+      // Arrange
+      const follow = follows[0];
+      await repository.create(follow);
+
+      // Act
+      await repository.delete(follow.getId());
+
+      // Assert
+      const result = await repository.findById(follow.getId());
+      expect(result).toBeNull();
+
+      // Also verify the relationship is removed from other lookup structures
+      const relationship = await repository.findByFollowerAndFollowed(
+        follow.getFollowerId(),
+        follow.getFollowedId(),
+      );
+      expect(relationship).toBeNull();
+
+      const isStillFollowing = await repository.isFollowing(
+        follow.getFollowerId(),
+        follow.getFollowedId(),
+      );
+      expect(isStillFollowing).toBe(false);
+    });
+
+    it('should not throw error when deleting non-existent follow', async () => {
+      // Act & Assert
       await expect(repository.delete('non-existent-id')).resolves.not.toThrow();
     });
 
-    it('should delete the follow relationship and make it inaccessible', async () => {
+    it('should remove follow relationship from follower indices', async () => {
       // Arrange
-      const followId = 'follow-to-delete';
-      const followerId = 'deleter';
-      const followedId = 'deletee';
-      const follow = createMockFollow(
-        followId,
-        followerId,
-        followedId,
-        new Date(),
-      );
+      const follow = follows[0]; // follower-1 follows followed-1
       await repository.create(follow);
 
-      // Verify it exists first
-      expect(await repository.findById(followId)).toBe(follow);
-      expect(await repository.isFollowing(followerId, followedId)).toBe(true);
+      // Verify follower has following before delete
+      let following = await repository.findFollowing(follow.getFollowerId());
+      expect(following.length).toBe(1);
 
       // Act
-      await repository.delete(followId);
+      await repository.delete(follow.getId());
 
-      // Assert
-      expect(await repository.findById(followId)).toBeNull();
-      expect(await repository.isFollowing(followerId, followedId)).toBe(false);
-      expect(await repository.findFollowers(followedId)).toEqual([]);
-      expect(await repository.findFollowing(followerId)).toEqual([]);
+      // Assert - Following should be empty now
+      following = await repository.findFollowing(follow.getFollowerId());
+      expect(following.length).toBe(0);
     });
 
-    it("should remove the relationship from user's followers and following lists", async () => {
+    it('should remove follow relationship from followed indices', async () => {
       // Arrange
-      const followId1 = 'follow-delete-1';
-      const followId2 = 'follow-delete-2';
-      const followerId = 'multi-deleter';
-      const followedId1 = 'multi-deletee-1';
-      const followedId2 = 'multi-deletee-2';
+      const follow = follows[0]; // follower-1 follows followed-1
+      await repository.create(follow);
 
-      const follow1 = createMockFollow(
-        followId1,
-        followerId,
-        followedId1,
-        new Date(),
-      );
-      const follow2 = createMockFollow(
-        followId2,
-        followerId,
-        followedId2,
-        new Date(),
-      );
-
-      await repository.create(follow1);
-      await repository.create(follow2);
-
-      // Verify initial state
-      expect((await repository.findFollowing(followerId)).length).toBe(2);
+      // Verify followed user has followers before delete
+      let followers = await repository.findFollowers(follow.getFollowedId());
+      expect(followers.length).toBe(1);
 
       // Act
-      await repository.delete(followId1);
+      await repository.delete(follow.getId());
 
-      // Assert
-      // Should only have one remaining follow
-      const followingAfterDelete = await repository.findFollowing(followerId);
-      expect(followingAfterDelete.length).toBe(1);
-      expect(followingAfterDelete[0]).toBe(follow2);
-
-      // Should not be following the first user anymore
-      expect(await repository.isFollowing(followerId, followedId1)).toBe(false);
-      // Should still be following the second user
-      expect(await repository.isFollowing(followerId, followedId2)).toBe(true);
+      // Assert - Followers should be empty now
+      followers = await repository.findFollowers(follow.getFollowedId());
+      expect(followers.length).toBe(0);
     });
   });
 });

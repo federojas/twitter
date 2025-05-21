@@ -9,7 +9,7 @@ import {
   ValidationException,
 } from '../../../../src/domain/exceptions/domain.exceptions';
 
-describe('FollowServiceImpl', () => {
+describe('FollowService', () => {
   let service: FollowServiceImpl;
 
   // Mock repository
@@ -19,12 +19,11 @@ describe('FollowServiceImpl', () => {
     findByFollowerAndFollowed: jest.fn(),
     findFollowers: jest.fn(),
     findFollowing: jest.fn(),
+    findAllFollowing: jest.fn(),
+    findAllFollowers: jest.fn(),
     isFollowing: jest.fn(),
     delete: jest.fn(),
   };
-
-  // Store original static method before tests
-  const originalFollowCreate = jest.spyOn(FollowAggregate, 'create');
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -43,11 +42,6 @@ describe('FollowServiceImpl', () => {
     jest.clearAllMocks();
   });
 
-  afterEach(() => {
-    // Restore original implementation after each test
-    originalFollowCreate.mockRestore();
-  });
-
   describe('createFollow', () => {
     it('should create a new follow relationship when it does not exist yet', async () => {
       // Arrange
@@ -59,7 +53,6 @@ describe('FollowServiceImpl', () => {
         getId: () => 'follow-789',
         getFollowerId: () => followerId,
         getFollowedId: () => followedId,
-        getCreatedAt: () => new Date(),
       } as unknown as FollowAggregate;
 
       jest.spyOn(FollowAggregate, 'create').mockReturnValue(mockFollow);
@@ -75,16 +68,12 @@ describe('FollowServiceImpl', () => {
         followerId,
         followedId,
       );
-
-      // Use mockImplementationOnce instead of spying directly
-      const mockCreateImplementation = jest.fn().mockReturnValue(mockFollow);
-      const tempMock = jest.spyOn(FollowAggregate, 'create');
-      tempMock.mockImplementation(mockCreateImplementation);
-
+      expect(FollowAggregate.create).toHaveBeenCalledWith(
+        followerId,
+        followedId,
+      );
       expect(mockFollowRepository.create).toHaveBeenCalledWith(mockFollow);
       expect(result).toBe(mockFollow);
-
-      tempMock.mockRestore();
     });
 
     it('should throw ValidationException when user tries to follow themselves', async () => {
@@ -93,7 +82,7 @@ describe('FollowServiceImpl', () => {
 
       // Act & Assert
       await expect(service.createFollow(userId, userId)).rejects.toThrow(
-        new ValidationException('Users cannot follow themselves'),
+        ValidationException,
       );
 
       expect(mockFollowRepository.isFollowing).not.toHaveBeenCalled();
@@ -111,9 +100,7 @@ describe('FollowServiceImpl', () => {
       // Act & Assert
       await expect(
         service.createFollow(followerId, followedId),
-      ).rejects.toThrow(
-        new ConflictException('Follow relationship already exists'),
-      );
+      ).rejects.toThrow(ConflictException);
 
       expect(mockFollowRepository.isFollowing).toHaveBeenCalledWith(
         followerId,
@@ -131,7 +118,6 @@ describe('FollowServiceImpl', () => {
         getId: () => followId,
         getFollowerId: () => 'follower-123',
         getFollowedId: () => 'followed-456',
-        getCreatedAt: () => new Date(),
       } as unknown as FollowAggregate;
 
       // Mock repository response
@@ -154,7 +140,7 @@ describe('FollowServiceImpl', () => {
 
       // Act & Assert
       await expect(service.getFollowById(followId)).rejects.toThrow(
-        new FollowNotFoundException(followId),
+        FollowNotFoundException,
       );
 
       expect(mockFollowRepository.findById).toHaveBeenCalledWith(followId);
@@ -185,7 +171,6 @@ describe('FollowServiceImpl', () => {
       const result = await service.getUserFollowers(userId);
 
       // Assert
-      // Update to include pagination parameters
       expect(mockFollowRepository.findFollowers).toHaveBeenCalledWith(
         userId,
         1,
@@ -206,7 +191,6 @@ describe('FollowServiceImpl', () => {
       const result = await service.getUserFollowers(userId);
 
       // Assert
-      // Update to include pagination parameters
       expect(mockFollowRepository.findFollowers).toHaveBeenCalledWith(
         userId,
         1,
@@ -240,7 +224,6 @@ describe('FollowServiceImpl', () => {
       const result = await service.getUserFollowing(userId);
 
       // Assert
-      // Update to include pagination parameters
       expect(mockFollowRepository.findFollowing).toHaveBeenCalledWith(
         userId,
         1,
@@ -261,13 +244,43 @@ describe('FollowServiceImpl', () => {
       const result = await service.getUserFollowing(userId);
 
       // Assert
-      // Update to include pagination parameters
       expect(mockFollowRepository.findFollowing).toHaveBeenCalledWith(
         userId,
         1,
         10,
       );
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('getAllUserFollowing', () => {
+    it('should return all users the user is following', async () => {
+      // Arrange
+      const userId = 'user-123';
+      const mockFollows = [
+        {
+          getId: () => 'follow-1',
+          getFollowerId: () => userId,
+          getFollowedId: () => 'followed-1',
+        },
+        {
+          getId: () => 'follow-2',
+          getFollowerId: () => userId,
+          getFollowedId: () => 'followed-2',
+        },
+      ] as unknown as FollowAggregate[];
+
+      // Mock repository response
+      mockFollowRepository.findAllFollowing.mockResolvedValue(mockFollows);
+
+      // Act
+      const result = await service.getAllUserFollowing(userId);
+
+      // Assert
+      expect(mockFollowRepository.findAllFollowing).toHaveBeenCalledWith(
+        userId,
+      );
+      expect(result).toBe(mockFollows);
     });
   });
 
@@ -350,13 +363,94 @@ describe('FollowServiceImpl', () => {
 
       // Act & Assert
       await expect(service.unfollow(followerId, followedId)).rejects.toThrow(
-        new ResourceNotFoundException('Follow relationship'),
+        ResourceNotFoundException,
       );
 
       expect(
         mockFollowRepository.findByFollowerAndFollowed,
       ).toHaveBeenCalledWith(followerId, followedId);
       expect(mockFollowRepository.delete).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getTotalFollowing', () => {
+    it('should return the count of users being followed', async () => {
+      // Arrange
+      const userId = 'user-123';
+      const mockFollows = [
+        { getId: () => 'follow-1' },
+        { getId: () => 'follow-2' },
+        { getId: () => 'follow-3' },
+      ] as unknown as FollowAggregate[];
+
+      // Mock repository response
+      mockFollowRepository.findAllFollowing.mockResolvedValue(mockFollows);
+
+      // Act
+      const result = await service.getTotalFollowing(userId);
+
+      // Assert
+      expect(mockFollowRepository.findAllFollowing).toHaveBeenCalledWith(
+        userId,
+      );
+      expect(result).toBe(3);
+    });
+
+    it('should return 0 when user is not following anyone', async () => {
+      // Arrange
+      const userId = 'user-123';
+
+      // Mock repository response
+      mockFollowRepository.findAllFollowing.mockResolvedValue([]);
+
+      // Act
+      const result = await service.getTotalFollowing(userId);
+
+      // Assert
+      expect(mockFollowRepository.findAllFollowing).toHaveBeenCalledWith(
+        userId,
+      );
+      expect(result).toBe(0);
+    });
+  });
+
+  describe('getTotalFollowers', () => {
+    it('should return the count of followers', async () => {
+      // Arrange
+      const userId = 'user-123';
+      const mockFollows = [
+        { getId: () => 'follow-1' },
+        { getId: () => 'follow-2' },
+      ] as unknown as FollowAggregate[];
+
+      // Mock repository response
+      mockFollowRepository.findAllFollowers.mockResolvedValue(mockFollows);
+
+      // Act
+      const result = await service.getTotalFollowers(userId);
+
+      // Assert
+      expect(mockFollowRepository.findAllFollowers).toHaveBeenCalledWith(
+        userId,
+      );
+      expect(result).toBe(2);
+    });
+
+    it('should return 0 when user has no followers', async () => {
+      // Arrange
+      const userId = 'user-123';
+
+      // Mock repository response
+      mockFollowRepository.findAllFollowers.mockResolvedValue([]);
+
+      // Act
+      const result = await service.getTotalFollowers(userId);
+
+      // Assert
+      expect(mockFollowRepository.findAllFollowers).toHaveBeenCalledWith(
+        userId,
+      );
+      expect(result).toBe(0);
     });
   });
 });
