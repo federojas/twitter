@@ -2,5 +2,4 @@
 - No se require ningun tipo de verificación al crear los usuarios.
 - Los tweets no pueden editarse ni borrarse (solo crearse y leerse).
 - Los follows no necesitan validación del otro usuario (unilateral).
-- La timeline debe mostrar los tweets propios, además de los de los usarios seguidos.
-
+- La timeline debe mostrar los tweets propios, además de los tweets de los usarios seguidos.
