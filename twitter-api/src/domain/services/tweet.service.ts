@@ -54,13 +54,13 @@ export class TweetServiceImpl implements TweetService {
 
     const allTweets = [...userTweets, ...followedTweets];
 
-    this.sortByRecency(allTweets);
+    const sortedTweets = this.sortByRecency(allTweets);
 
-    const total = allTweets.length;
+    const total = sortedTweets.length;
     const startIndex = (page - 1) * pageSize;
     const endIndex = Math.min(startIndex + pageSize, total);
 
-    return allTweets.slice(startIndex, endIndex);
+    return sortedTweets.slice(startIndex, endIndex);
   }
 
   async getTotalTimelineTweets(
