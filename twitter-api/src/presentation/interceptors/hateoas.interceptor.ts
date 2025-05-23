@@ -40,6 +40,7 @@ export class HateoasInterceptor implements NestInterceptor {
     next: CallHandler,
   ): Observable<ApiResponse> {
     const originalQueryParams = this.extractQueryParams(context);
+    const originalPath = this.extractPath(context);
 
     return next.handle().pipe(
       map((data: ApiResponse) => {
@@ -48,7 +49,11 @@ export class HateoasInterceptor implements NestInterceptor {
         }
 
         if (data instanceof PaginatedResult) {
-          return this.transformPaginatedResult(data, originalQueryParams);
+          return this.transformPaginatedResult(
+            data,
+            originalQueryParams,
+            originalPath,
+          );
         }
 
         if (Array.isArray(data)) {
@@ -58,6 +63,17 @@ export class HateoasInterceptor implements NestInterceptor {
         return LinkGenerator.enhanceResourceWithLinks(data) as ApiResource;
       }),
     );
+  }
+
+  private extractPath(context: ExecutionContext): string {
+    try {
+      const req = context.switchToHttp().getRequest<Request>();
+      const fullUrl = req?.originalUrl || req?.url || req?.path || '/';
+      const path = fullUrl.split('?')[0];
+      return path || '/';
+    } catch {
+      return '/';
+    }
   }
 
   private extractQueryParams(
@@ -86,13 +102,15 @@ export class HateoasInterceptor implements NestInterceptor {
   private transformPaginatedResult<T extends ApiResource>(
     result: PaginatedResult<T>,
     originalQueryParams: Record<string, string> = {},
+    originalPath: string = '/',
   ): PaginatedResultWithLinks<T> {
     const transformedData = LinkGenerator.enhanceResourcesWithLinks(
       result.data,
     ) as T[];
 
-    let resourcePath = '/';
-    if (transformedData.length > 0) {
+    let resourcePath = originalPath;
+
+    if (originalPath === '/' && transformedData.length > 0) {
       const firstItem = transformedData[0];
 
       if (isTweetDto(firstItem)) {
