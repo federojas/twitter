@@ -20,6 +20,8 @@ Las variables de entorno ya se encuentran definidas en `docker-compose.yml` para
 
 ## Inicialización
 
+Desde la consola ingresar al directorio del repositorio y luego ingresar a la carpeta **twitter-pai**. Luego ejecutar el siguiente comando.
+
 ```bash
 docker-compose up -d
 ```
@@ -33,6 +35,9 @@ También se puede interactuar con la API a través de una Swagger UI en **http:/
 Para los endpoints que requieren autenticación, usar el header `Authorization` con el valor `Bearer {user-id}` donde `{user-id}` es el ID del usuario que esta haciendo el request (simulando ser un JWT).
 
 ## Finalización
+
+Desde la consola ingresar al directorio del repositorio y luego ingresar a la carpeta **twitter-pai**.
+Luego ejecutar el siguiente comando.
 
 ```bash
 docker-compose down
