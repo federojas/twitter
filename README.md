@@ -20,7 +20,7 @@ Las variables de entorno ya se encuentran definidas en `docker-compose.yml` para
 
 ## Inicialización
 
-Desde la consola ingresar al directorio del repositorio y luego ingresar a la carpeta **twitter-pai**. Luego ejecutar el siguiente comando.
+Desde la consola ingresar al directorio del repositorio y luego ingresar a la carpeta **twitter-api**. Luego ejecutar el siguiente comando.
 
 ```bash
 docker-compose up -d
@@ -36,7 +36,7 @@ Para los endpoints que requieren autenticación, usar el header `Authorization` 
 
 ## Finalización
 
-Desde la consola ingresar al directorio del repositorio y luego ingresar a la carpeta **twitter-pai**.
+Desde la consola ingresar al directorio del repositorio y luego ingresar a la carpeta **twitter-api**.
 Luego ejecutar el siguiente comando.
 
 ```bash
