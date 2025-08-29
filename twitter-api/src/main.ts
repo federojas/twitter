@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { DomainExceptionFilter } from './presentation/filters/domain-exception.filter';
 import { HateoasInterceptor } from './presentation/interceptors/hateoas.interceptor';
+import { SanitizationPipe } from './presentation/pipes/sanitization.pipe';
 
 const SWAGGER_PATH = 'swagger';
 
@@ -13,6 +14,7 @@ async function bootstrap() {
   app.enableCors();
 
   app.useGlobalPipes(
+    new SanitizationPipe(), // Sanitize first to clean inputs
     new ValidationPipe({
       whitelist: true,
       transform: true,
